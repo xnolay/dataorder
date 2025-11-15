@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulir Data Order</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Library PapaParse untuk membaca CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .modal { transition: opacity 0.3s ease; }
+        .modal-content { transition: transform 0.3s ease; }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] { -moz-appearance: textfield; }
+        .table-auto th, .table-auto td {
+            padding: 8px 12px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <header class="mb-6 bg-white p-6 rounded-lg shadow">
+            <h1 class="text-3xl font-bold text-gray-900">Formulir Data Order</h1>
+        </header>
+
+        <!-- Bagian Data Pelanggan -->
+        <section class="mb-6 bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4 border-b pb-2">Data Pelanggan</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="customerName" class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+                    <input type="text" id="customerName" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="keterangan" class="block text-sm font-medium text-gray-700 mb-1">Keterangan (Alamat, PIC, Telp, dll)</label>
+                    <textarea id="keterangan" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Masukkan alamat kirim, nama PIC, dan no telp..."></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bagian Detail Pesanan -->
+        <section class="mb-6 bg-white p-6 rounded-lg shadow">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h2 class="text-xl font-semibold">Detail Pesanan</h2>
+                <button id="openPriceListModalBtn" class="text-sm bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Ubah List Harga
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full table-auto">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="w-1/3">Nama Barang</th>
+                            <th class="w-24">Tipe Harga</th>
+                            <th class="w-24">Qty</th>
+                            <th class="w-40">Harga Satuan</th> <!-- DIUBAH: Ditambahkan w-40 -->
+                            <th class="w-32">Bonus/Ket.</th>  <!-- DIUBAH: Ditambahkan w-32 -->
+                            <th class="w-40">Total</th>         <!-- DIUBAH: Ditambahkan w-40 -->
+                        </tr>
+                    </thead>
+                    <tbody id="order-rows-body">
+                        <!-- Baris akan di-generate oleh JS -->
+                    </tbody>
+                    <tfoot>
+                        <tr class="border-t-2 font-bold">
+                            <td colspan="5" class="text-right text-lg pr-4">Grand Total:</td>
+                            <td id="grand-total" class="text-lg">Rp 0</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+
+        <!-- Tombol Aksi -->
+        <section class="flex justify-end gap-4 bg-white p-6 rounded-lg shadow">
+            <button id="reset-form" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                Reset
+            </button>
+            <button id="submit-order" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                Submit
+            </button>
+        </section>
+
+        <!-- Bagian Log Pesanan -->
+        <section id="orderLogSection" class="mt-8 bg-white p-6 rounded-lg shadow hidden">
+            <h2 class="text-xl font-semibold mb-4 border-b pb-2">Log Pesanan</h2>
+            <div id="orderLogContent" class="space-y-4 max-h-96 overflow-y-auto">
+                <!-- Log akan di-generate oleh JS -->
+            </div>
+        </section>
+    </div>
+
+    <!-- (DIUBAH) Modal Ubah List Harga (Metode 3-Kolom Sederhana) -->
+    <div id="priceListModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden opacity-0 modal z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-full overflow-y-auto modal-content transform scale-95">
+            <div class="flex justify-between items-center p-5 border-b">
+                <h3 class="text-xl font-semibold">Kelola List Harga (Upload CSV)</h3>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-md">
+                    <h4 class="font-bold">METODE BARU (Paling Stabil):</h4>
+                    <p class="text-sm">Silakan siapkan **SATU FILE CSV** yang berisi **SEMUA** barang Anda (Fiber, Precon, dll).</p>
+                    <ul class="list-disc list-inside text-sm pl-2 mt-2">
+                        <li>File CSV harus **3 KOLOM SAJA** (A, B, C).</li>
+                        <li><strong>Kolom A:</strong> Nama Barang (Lengkap)</li>
+                        <li><strong>Kolom B:</strong> Harga ISP (Angkanya saja, misal `150000`)</li>
+                        <li><strong>Kolom C:</strong> Harga MSRP (Angkanya saja, misal `165000`)</li>
+                        <li class="font-bold">Pastikan **TIDAK ADA** header/judul di baris pertama.</li>
+                        <li>Pastikan **TIDAK ADA** baris kosong.</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <label for="csvFileInput" class="block text-sm font-medium text-gray-700 mb-1">Upload File CSV (Format 3-Kolom):</label>
+                    <input type="file" id="csvFileInput" accept=".csv" class="w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-md file:border-0
+                        file:font-semibold file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100
+                    ">
+                    <span id="fileNameDisplay" class="text-sm text-gray-600 mt-1 block"></span>
+                </div>
+
+                <div id="uploadStatus" class="text-sm text-green-600 font-medium hidden"></div>
+
+                <div>
+                    <h4 class="text-md font-semibold mb-2">List Harga Saat Ini:</h4>
+                    <div class="border rounded-lg max-h-60 overflow-y-auto bg-gray-50">
+                        <table class="w-full table-auto">
+                            <thead class="bg-gray-200 sticky top-0">
+                                <tr>
+                                    <th class="w-1/2">Nama Barang</th>
+                                    <th>Harga ISP</th>
+                                    <th>Harga MSRP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="priceListTableBody">
+                                <!-- Data list harga akan di-generate oleh JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Preview WhatsApp -->
+    <div id="whatsappPreviewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden opacity-0 modal z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg modal-content transform scale-95">
+            <div class="flex justify-between items-center p-5 border-b">
+                <h3 class="text-xl font-semibold">Preview WhatsApp</h3>
+                <button id="closePreviewModalBtn" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+            </div>
+            <div class="p-6">
+                <p class="text-sm text-gray-600 mb-2">Teks berikut siap untuk di-copy dan paste ke WhatsApp:</p>
+                <div id="whatsappPreviewText" class="w-full h-64 p-4 border rounded-md bg-gray-50 overflow-y-auto whitespace-pre-wrap text-sm">
+                    <!-- Konten WA akan di-generate oleh JS -->
+                </div>
+                <button id="copyToClipboardBtn" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    Copy Teks
+                </button>
+                <span id="copySuccessMsg" class="text-green-600 text-sm mt-2 hidden">Teks berhasil di-copy!</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const CUSTOMER_STORAGE_KEY = 'orderFormData_customer';
+            const PRICE_LIST_STORAGE_KEY = 'orderFormData_priceList';
+            const SPECIAL_PRICE_STORAGE_KEY = 'orderFormData_specialPrices';
+            const ORDER_LOG_STORAGE_KEY = 'orderFormData_orderLog';
+            const NUM_ROWS = 8;
+
+            let priceList = [];
+            let specialPrices = {};
+            let orderLog = [];
+
+            // --- Element References ---
+            const customerInputs = {
+                name: document.getElementById('customerName'),
+                keterangan: document.getElementById('keterangan')
+            };
+            
+            // Modal List Harga
+            const modal = document.getElementById('priceListModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const openPriceListModalBtn = document.getElementById('openPriceListModalBtn');
+            const csvFileInput = document.getElementById('csvFileInput');
+            const fileNameDisplay = document.getElementById('fileNameDisplay');
+            const uploadStatus = document.getElementById('uploadStatus');
+            const priceListTableBody = document.getElementById('priceListTableBody');
+            
+            // Modal Preview WA
+            const previewModal = document.getElementById('whatsappPreviewModal');
+            const closePreviewModalBtn = document.getElementById('closePreviewModalBtn');
+            const whatsappPreviewText = document.getElementById('whatsappPreviewText');
+            const copyToClipboardBtn = document.getElementById('copyToClipboardBtn');
+            const copySuccessMsg = document.getElementById('copySuccessMsg');
+
+            // Form Utama
+            const orderRowsBody = document.getElementById('order-rows-body');
+            const grandTotalEl = document.getElementById('grand-total');
+            const submitOrderBtn = document.getElementById('submit-order');
+            const resetFormBtn = document.getElementById('reset-form');
+
+            // Log Pesanan
+            const orderLogSection = document.getElementById('orderLogSection');
+            const orderLogContent = document.getElementById('orderLogContent');
+
+            // --- Utility Functions ---
+            function formatCurrency(num) {
+                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+            }
+
+            function parseCurrency(value) {
+                if (typeof value === 'number') return value;
+                const cleaned = String(value).replace(/[^0-9]/g, '');
+                return parseFloat(cleaned) || 0;
+            }
+            
+            // (DIUBAH) Fungsi parsing harga yang lebih kuat untuk CSV
+            function parsePriceString(value) {
+                if (typeof value === 'number') {
+                    return Math.round(value); // Handles 360000.0
+                }
+                if (!value) return 0;
+                // Handles "150,000,000", "Rp 150.000", "150.000", '" 150,000 "'
+                const cleaned = String(value).replace(/[^0-9]/g, '');
+                return parseInt(cleaned, 10) || 0;
+            }
+
+            // --- Inisialisasi Aplikasi ---
+            function initialize() {
+                loadPriceList();
+                loadCustomerData();
+                loadSpecialPrices();
+                loadOrderLog();
+                createOrderRows();
+                setupEventListeners();
+                updateAllDropdowns();
+                renderPriceListTable();
+                renderOrderLog();
+            }
+
+            // --- Fungsi Data Handling (Local Storage) ---
+            function loadPriceList() {
+                priceList = JSON.parse(localStorage.getItem(PRICE_LIST_STORAGE_KEY)) || [];
+                priceList.sort((a, b) => a.name.localeCompare(b.name));
+            }
+
+            function savePriceList() {
+                localStorage.setItem(PRICE_LIST_STORAGE_KEY, JSON.stringify(priceList));
+                updateAllDropdowns();
+                renderPriceListTable();
+            }
+
+            function loadCustomerData() {
+                const data = JSON.parse(localStorage.getItem(CUSTOMER_STORAGE_KEY)) || {};
+                customerInputs.name.value = data.name || '';
+                customerInputs.keterangan.value = data.keterangan || '';
+            }
+
+            function saveCustomerData() {
+                const data = {
+                    name: customerInputs.name.value,
+                    keterangan: customerInputs.keterangan.value
+                };
+                localStorage.setItem(CUSTOMER_STORAGE_KEY, JSON.stringify(data));
+            }
+            
+            function loadSpecialPrices() {
+                specialPrices = JSON.parse(localStorage.getItem(SPECIAL_PRICE_STORAGE_KEY)) || {};
+            }
+
+            function saveSpecialPrices() {
+                localStorage.setItem(SPECIAL_PRICE_STORAGE_KEY, JSON.stringify(specialPrices));
+            }
+            
+            function loadOrderLog() {
+                orderLog = JSON.parse(localStorage.getItem(ORDER_LOG_STORAGE_KEY)) || [];
+            }
+            
+            function saveOrderLog() {
+                localStorage.setItem(ORDER_LOG_STORAGE_KEY, JSON.stringify(orderLog));
+            }
+
+            // --- Fungsi Rendering ---
+            function createOrderRows() {
+                orderRowsBody.innerHTML = ''; // Kosongkan dulu
+                for (let i = 0; i < NUM_ROWS; i++) {
+                    const tr = document.createElement('tr');
+                    tr.id = `row-${i}`;
+                    tr.classList.add('border-b');
+                    tr.innerHTML = `
+                        <td class="py-2"><select data-id="${i}" name="item" class="item-select w-full p-2 border border-gray-300 rounded-md"></select></td>
+                        <td class="py-2"><select data-id="${i}" name="priceType" class="price-type-select w-full p-2 border border-gray-300 rounded-md">
+                            <option value="isp">ISP</option>
+                            <option value="msrp">MSRP</option>
+                            <option value="special">Special</option>
+                        </select></td>
+                        <td class="py-2"><input data-id="${i}" name="qty" type="number" min="0" class="qty-input w-20 p-2 border border-gray-300 rounded-md" value="0"></td>
+                        <td class="py-2"><input data-id="${i}" name="price" type="text" class="price-input w-full p-2 border border-gray-300 rounded-md" value="0" placeholder="0"></td>
+                        <td class="py-2"><input data-id="${i}" name="bonus" type="text" class="bonus-input w-full p-2 border border-gray-300 rounded-md"></td>
+                        <td class="py-2"><span class="row-total font-medium">Rp 0</span></td>
+                    `;
+                    orderRowsBody.appendChild(tr);
+                }
+            }
+
+            function updateAllDropdowns() {
+                const itemSelects = document.querySelectorAll('.item-select');
+                const optionsHtml = priceList.map(item => `<option value="${item.id}">${item.name}</option>`).join('');
+                
+                itemSelects.forEach(select => {
+                    const currentVal = select.value;
+                    select.innerHTML = `<option value="">-- Pilih Barang --</option>${optionsHtml}`;
+                    select.value = currentVal; // Pertahankan value jika masih ada
+                });
+            }
+
+            function renderPriceListTable() {
+                if (!priceListTableBody) return;
+                priceListTableBody.innerHTML = ''; // Kosongkan
+                
+                if (priceList.length === 0) {
+                    priceListTableBody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-500">List harga masih kosong.</td></tr>';
+                    return;
+                }
+                
+                priceList.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.classList.add('border-b');
+                    tr.innerHTML = `
+                        <td class="w-1/2">${item.name}</td>
+                        <td>${formatCurrency(item.price_isp)}</td>
+                        <td>${formatCurrency(item.price_msrp)}</td>
+                    `;
+                    priceListTableBody.appendChild(tr);
+                });
+            }
+            
+            function renderOrderLog() {
+                orderLogContent.innerHTML = '';
+                if (orderLog.length === 0) {
+                    orderLogSection.classList.add('hidden');
+                    return;
+                }
+                
+                orderLogSection.classList.remove('hidden');
+                orderLog.slice().reverse().forEach((log, index) => { // Tampilkan dari terbaru
+                    const logEntry = document.createElement('div');
+                    logEntry.classList.add('p-4', 'border', 'rounded-md', 'bg-gray-50');
+                    
+                    let itemsHtml = log.items.map(item => `
+                        <li class="text-sm">${item.qty}x ${item.name} @ ${formatCurrency(item.price)} (${item.priceType})${item.bonus ? ` - ${item.bonus}` : ''} = <strong>${formatCurrency(item.rowTotal)}</strong></li>
+                    `).join('');
+                    
+                    logEntry.innerHTML = `
+                        <p class="font-semibold text-gray-800">${log.customerName || 'Tanpa Nama'} - ${log.timestamp}</p>
+                        <p class="text-sm text-gray-600 whitespace-pre-wrap mt-1 mb-2">${log.keterangan || 'Tanpa keterangan'}</p>
+                        <ul class="list-disc list-inside space-y-1 mb-2">${itemsHtml}</ul>
+                        <p class="text-right font-bold text-md text-gray-900">Grand Total: ${formatCurrency(log.grandTotal)}</p>
+                    `;
+                    orderLogContent.appendChild(logEntry);
+                });
+            }
+
+            // --- Fungsi Kalkulasi ---
+            function updateRow(rowId) {
+                const itemSelect = document.querySelector(`#row-${rowId} .item-select`);
+                const priceTypeSelect = document.querySelector(`#row-${rowId} .price-type-select`);
+                const qtyInput = document.querySelector(`#row-${rowId} .qty-input`);
+                const priceInput = document.querySelector(`#row-${rowId} .price-input`);
+                const totalSpan = document.querySelector(`#row-${rowId} .row-total`);
+
+                const selectedItemId = itemSelect.value;
+                const priceType = priceTypeSelect.value;
+                const qty = parseFloat(qtyInput.value) || 0;
+                
+                let price = 0;
+                
+                if (selectedItemId) {
+                    const item = priceList.find(p => p.id === selectedItemId);
+                    if (item) {
+                        if (priceType === 'isp') {
+                            price = item.price_isp;
+                            priceInput.value = formatCurrency(price);
+                            priceInput.disabled = true;
+                        } else if (priceType === 'msrp') {
+                            price = item.price_msrp;
+                            priceInput.value = formatCurrency(price);
+                            priceInput.disabled = true;
+                        } else { // Special
+                            priceInput.disabled = false;
+                            const specialPrice = specialPrices[selectedItemId];
+                            if (specialPrice) {
+                                priceInput.value = formatCurrency(specialPrice);
+                                price = specialPrice;
+                            } else {
+                                price = parseCurrency(priceInput.value);
+                            }
+                        }
+                    }
+                } else {
+                    priceInput.value = "0";
+                    priceInput.disabled = true;
+                }
+
+                if (priceType === 'special') {
+                    price = parseCurrency(priceInput.value);
+                }
+
+                const rowTotal = qty * price;
+                totalSpan.textContent = formatCurrency(rowTotal);
+                
+                updateGrandTotal();
+            }
+
+            function updateGrandTotal() {
+                let grandTotal = 0;
+                document.querySelectorAll('.row-total').forEach(span => {
+                    grandTotal += parseCurrency(span.textContent);
+                });
+                grandTotalEl.textContent = formatCurrency(grandTotal);
+            }
+            
+            function resetForm() {
+                createOrderRows();
+                updateAllDropdowns();
+                updateGrandTotal();
+                customerInputs.name.value = '';
+                customerInputs.keterangan.value = '';
+                saveCustomerData();
+            }
+
+            // --- Event Handlers ---
+            function setupEventListeners() {
+                customerInputs.name.addEventListener('blur', saveCustomerData);
+                customerInputs.keterangan.addEventListener('blur', saveCustomerData);
+
+                orderRowsBody.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('item-select') || 
+                        e.target.classList.contains('price-type-select') ||
+                        e.target.classList.contains('qty-input')) {
+                        updateRow(e.target.dataset.id);
+                    }
+                });
+                
+                orderRowsBody.addEventListener('input', (e) => {
+                     if (e.target.classList.contains('price-input')) {
+                        const rowId = e.target.dataset.id;
+                        const itemSelect = document.querySelector(`#row-${rowId} .item-select`);
+                        const selectedItemId = itemSelect.value;
+                        const priceType = document.querySelector(`#row-${rowId} .price-type-select`).value;
+                        
+                        if (priceType === 'special' && selectedItemId) {
+                            const price = parseCurrency(e.target.value);
+                            specialPrices[selectedItemId] = price;
+                            saveSpecialPrices();
+                        }
+                        updateRow(rowId);
+                    }
+                });
+
+                resetFormBtn.addEventListener('click', () => {
+                    if (confirm("Apakah Anda yakin ingin mereset seluruh formulir?")) {
+                        resetForm();
+                    }
+                });
+                submitOrderBtn.addEventListener('click', handleSubmit);
+
+                setupModalListeners();
+                setupPreviewModalListeners();
+            }
+            
+            function handleSubmit() {
+                const orderData = {
+                    customerName: customerInputs.name.value,
+                    keterangan: customerInputs.keterangan.value,
+                    timestamp: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }),
+                    items: [],
+                    grandTotal: 0
+                };
+                
+                let waText = `*ORDER*\n`;
+                waText += `*Tanggal:* ${orderData.timestamp}\n`;
+                waText += `*Customer:* ${orderData.customerName || '-'}\n`;
+                waText += `*Keterangan:* \n${orderData.keterangan || '-'}\n`;
+                waText += "--------------------------------------\n";
+
+                let hasItems = false;
+                for (let i = 0; i < NUM_ROWS; i++) {
+                    const row = document.getElementById(`row-${i}`);
+                    const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+                    
+                    if (qty > 0) {
+                        hasItems = true;
+                        const itemSelect = row.querySelector('.item-select');
+                        const priceTypeSelect = row.querySelector('.price-type-select');
+                        
+                        const itemId = itemSelect.value;
+                        const item = priceList.find(p => p.id === itemId);
+                        const price = parseCurrency(row.querySelector('.price-input').value);
+                        const bonus = row.querySelector('.bonus-input').value.trim();
+                        const rowTotal = qty * price;
+                        
+                        const itemData = {
+                            name: item ? item.name : 'Barang Tidak Dikenal',
+                            priceType: priceTypeSelect.options[priceTypeSelect.selectedIndex].text,
+                            qty: qty,
+                            price: price,
+                            bonus: bonus,
+                            rowTotal: rowTotal
+                        };
+                        orderData.items.push(itemData);
+                        
+                        waText += `*${itemData.qty}x* ${itemData.name}\n`;
+                        waText += `(${itemData.priceType}) @ ${formatCurrency(itemData.price)}\n`;
+                        if (itemData.bonus) {
+                            waText += `*Bonus:* ${itemData.bonus}\n`;
+                        }
+                        waText += `*Total :* ${formatCurrency(itemData.rowTotal)}\n\n`;
+                    }
+                }
+                
+                if (!hasItems) {
+                    alert("Order gagal. Belum ada barang yang dimasukkan (Qty masih 0).");
+                    return;
+                }
+                
+                const grandTotal = parseCurrency(grandTotalEl.textContent);
+                orderData.grandTotal = grandTotal;
+                
+                waText += "--------------------------------------\n";
+                waText += `*GRAND TOTAL: ${formatCurrency(grandTotal)}*\n\n`;
+                waText += "Terima kasih.";
+
+                orderLog.push(orderData);
+                saveOrderLog();
+                renderOrderLog();
+                
+                showPreviewModal(waText);
+            }
+
+            // --- Logika Modal ---
+            function setupModalListeners() {
+                openPriceListModalBtn.addEventListener('click', () => {
+                    modal.classList.remove('hidden');
+                    setTimeout(() => modal.classList.remove('opacity-0'), 10);
+                });
+                
+                closeModalBtn.addEventListener('click', closeModal);
+                
+                csvFileInput.addEventListener('change', handleCsvUpload);
+            }
+            
+            function closeModal() {
+                modal.classList.add('opacity-0');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+            
+            // (DIUBAH TOTAL) Fungsi Upload CSV Sederhana 3-Kolom
+            function handleCsvUpload(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                fileNameDisplay.textContent = `File: ${file.name}`;
+                uploadStatus.textContent = 'Memproses file...';
+                uploadStatus.classList.remove('hidden', 'text-red-600', 'text-green-600');
+                uploadStatus.classList.add('text-blue-600');
+                priceListTableBody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-500">Memproses...</td></tr>';
+
+                Papa.parse(file, {
+                    header: false, // Tidak ada header
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        let newPriceList = [];
+                        let processedCount = 0;
+
+                        results.data.forEach((row) => {
+                            // Format: Kolom A (0), Kolom B (1), Kolom C (2)
+                            if (row.length >= 3) {
+                                const name = String(row[0] || '').trim();
+                                const isp = parsePriceString(row[1]);
+                                const msrp = parsePriceString(row[2]);
+
+                                // Validasi data
+                                if (name && name.length > 2 && isp > 0 && msrp > 0) {
+                                    newPriceList.push({
+                                        id: `item-${Date.now()}-${processedCount++}`,
+                                        name: name,
+                                        price_isp: isp,
+                                        price_msrp: msrp
+                                    });
+                                }
+                            }
+                        });
+
+                        if (newPriceList.length === 0) {
+                            uploadStatus.textContent = 'Upload Gagal. Tidak ada data valid (format 3-kolom) yang ditemukan.';
+                            uploadStatus.classList.remove('text-blue-600');
+                            uploadStatus.classList.add('text-red-600');
+                            renderPriceListTable(); // Tampilkan list lama
+                        } else {
+                            priceList = newPriceList; // Ganti total list lama
+                            priceList.sort((a, b) => a.name.localeCompare(b.name));
+                            savePriceList();
+                            
+                            uploadStatus.textContent = `Upload Berhasil! ${newPriceList.length} barang berhasil ditambahkan.`;
+                            uploadStatus.classList.remove('text-blue-600');
+                            uploadStatus.classList.add('text-green-600');
+                        }
+                    },
+                    error: (err) => {
+                        uploadStatus.textContent = `Error: ${err.message}`;
+                        uploadStatus.classList.remove('text-blue-600');
+                        uploadStatus.classList.add('text-red-600');
+                        renderPriceListTable(); // Tampilkan list lama
+                    }
+                });
+            }
+
+            // --- Logika Modal Preview & Log ---
+            function setupPreviewModalListeners() {
+                closePreviewModalBtn.addEventListener('click', () => {
+                    previewModal.classList.add('opacity-0');
+                    setTimeout(() => previewModal.classList.add('hidden'), 300);
+                });
+                
+                copyToClipboardBtn.addEventListener('click', () => {
+                    const textToCopy = whatsappPreviewText.innerText;
+                    const tempTextArea = document.createElement('textarea');
+                    tempTextArea.value = textToCopy;
+                    document.body.appendChild(tempTextArea);
+                    tempTextArea.select();
+                    try {
+                        document.execCommand('copy');
+                        copySuccessMsg.classList.remove('hidden');
+                        setTimeout(() => copySuccessMsg.classList.add('hidden'), 2000);
+                    } catch (err) {
+                        console.error('Gagal copy: ', err);
+                        alert('Gagal menyalin teks.');
+                    }
+                    document.body.removeChild(tempTextArea);
+                });
+            }
+            
+            function showPreviewModal(text) {
+                whatsappPreviewText.innerText = text;
+                previewModal.classList.remove('hidden');
+                setTimeout(() => previewModal.classList.remove('opacity-0'), 10);
+            }
+
+            // Jalankan aplikasi
+            initialize();
+        });
+    </script>
+</body>
+</html>

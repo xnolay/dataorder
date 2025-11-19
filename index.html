@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formulir Data Order</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Library PapaParse untuk membaca CSV -->
@@ -61,9 +61,9 @@
                             <th class="w-1/3">Nama Barang</th>
                             <th class="w-24">Tipe Harga</th>
                             <th class="w-24">Qty</th>
-                            <th class="w-40">Harga Satuan</th> <!-- Lebar diubah -->
-                            <th class="w-32">Bonus/Ket.</th>  <!-- Lebar diubah -->
-                            <th class="w-40">Total</th>         <!-- Lebar diubah -->
+                            <th class="w-40">Harga Satuan</th>
+                            <th class="w-32">Bonus/Ket.</th>
+                            <th class="w-40">Total</th>
                         </tr>
                     </thead>
                     <tbody id="order-rows-body">
@@ -98,7 +98,7 @@
         </section>
     </div>
 
-    <!-- (DIUBAH) Modal Ubah List Harga (Metode 3-Kolom Sederhana) -->
+    <!-- Modal Ubah List Harga -->
     <div id="priceListModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden opacity-0 modal z-50">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-full overflow-y-auto modal-content transform scale-95">
             <div class="flex justify-between items-center p-5 border-b">
@@ -108,7 +108,7 @@
             <div class="p-6 space-y-4">
                 <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-md">
                     <h4 class="font-bold">METODE BARU (Paling Stabil):</h4>
-                    <p class="text-sm">Silakan siapkan **SATU FILE CSV** yang berisi **SEMUA** barang Anda (Fiber, Precon, dll).</p>
+                    <p class="text-sm">Jika ada perubahan harga, siapkan **SATU FILE CSV** yang berisi **SEMUA** barang Anda.</p>
                     <ul class="list-disc list-inside text-sm pl-2 mt-2">
                         <li>File CSV harus **3 KOLOM SAJA** (A, B, C).</li>
                         <li><strong>Kolom A:</strong> Nama Barang (Lengkap)</li>
@@ -181,25 +181,83 @@
             const ORDER_LOG_STORAGE_KEY = 'orderFormData_orderLog';
             const NUM_ROWS = 8;
 
-            // (BARU) Data default sebagai contoh. Ini akan ditimpa saat Anda upload CSV.
             const defaultPriceList = [
-                { id: 'default-1', name: 'FIBER OPTIC CABLE ADSS 288 CORE ( 24 TUBE )', price_isp: 150000000, price_msrp: 166500000 },
-                { id: 'default-2', name: 'FIBER OPTIC CABLE ADSS 144 CORE ( 12 TUBE )', price_isp: 75000000, price_msrp: 83250000 },
-                { id: 'default-3', name: 'PRECON /PATCHORD 500.0', price_isp: 360000, price_msrp: 399600 },
-                { id: 'default-4', name: 'PRECON /PATCHORD 300.0', price_isp: 240000, price_msrp: 266400 }
+                { id: 'def-p1-1', name: 'PRECON /PATCHORD G657A1 1 Core 500 M', price_isp: 360000, price_msrp: 399600 },
+                { id: 'def-p1-2', name: 'PRECON /PATCHORD G657A1 1 Core 300 M', price_isp: 240000, price_msrp: 266400 },
+                { id: 'def-p1-3', name: 'PRECON /PATCHORD G657A1 1 Core 250 M', price_isp: 200000, price_msrp: 222000 },
+                { id: 'def-p1-4', name: 'PRECON /PATCHORD G657A1 1 Core 200 M', price_isp: 184000, price_msrp: 204240 },
+                { id: 'def-p1-5', name: 'PRECON /PATCHORD G657A1 1 Core 150 M', price_isp: 113000, price_msrp: 125430 },
+                { id: 'def-p1-6', name: 'PRECON /PATCHORD G657A1 1 Core 100 M', price_isp: 87000, price_msrp: 96570 },
+                { id: 'def-p1-7', name: 'PRECON /PATCHORD G657A1 1 Core 80 M', price_isp: 69000, price_msrp: 76590 },
+                { id: 'def-p1-8', name: 'PRECON /PATCHORD G657A1 1 Core 50 M', price_isp: 55500, price_msrp: 61605 },
+                { id: 'def-p2-1', name: 'PRECON /PATCHORD G657A2 1 Core 500 M', price_isp: 422500, price_msrp: 468975 },
+                { id: 'def-p2-2', name: 'PRECON /PATCHORD G657A2 1 Core 300 M', price_isp: 277500, price_msrp: 308025 },
+                { id: 'def-p2-3', name: 'PRECON /PATCHORD G657A2 1 Core 250 M', price_isp: 231250, price_msrp: 256688 },
+                { id: 'def-p2-4', name: 'PRECON /PATCHORD G657A2 1 Core 200 M', price_isp: 185000, price_msrp: 205350 },
+                { id: 'def-p2-5', name: 'PRECON /PATCHORD G657A2 1 Core 150 M', price_isp: 131750, price_msrp: 146243 },
+                { id: 'def-p2-6', name: 'PRECON /PATCHORD G657A2 1 Core 100 M', price_isp: 99500, price_msrp: 110445 },
+                { id: 'def-p2-7', name: 'PRECON /PATCHORD G657A2 1 Core 80 M', price_isp: 79000, price_msrp: 87690 },
+                { id: 'def-p2-8', name: 'PRECON /PATCHORD G657A2 1 Core 50 M', price_isp: 61750, price_msrp: 68543 },
+                { id: 'def-f-1', name: 'FIBER OPTIC CABLE ADSS 288 CORE ( 24 TUBE ) 4 KM', price_isp: 150000000, price_msrp: 166500000 },
+                { id: 'def-f-2', name: 'FIBER OPTIC CABLE ADSS 144 CORE ( 12 TUBE ) 4 KM', price_isp: 75000000, price_msrp: 83250000 },
+                { id: 'def-f-3', name: 'FIBER OPTIC CABLE ADSS 96 CORE ( 8 TUBE ) 4 KM', price_isp: 49900000, price_msrp: 55389000 },
+                { id: 'def-f-4', name: 'FIBER OPTIC CABLE ADSS 96 CORE ( 8 TUBE ) 2 KM', price_isp: 25700000, price_msrp: 28527000 },
+                { id: 'def-f-5', name: 'FIBER OPTIC CABLE ADSS 48 CORE ( 4 TUBE ) 4 KM', price_isp: 29990000, price_msrp: 33288900 },
+                { id: 'def-f-6', name: 'FIBER OPTIC CABLE ADSS 48 CORE ( 4 TUBE ) 2 KM', price_isp: 15745000, price_msrp: 17476950 },
+                { id: 'def-f-7', name: 'FIBER OPTIC CABLE ADSS 24 CORE ( 4 TUBE ) 4 KM', price_isp: 20999000, price_msrp: 23308890 },
+                { id: 'def-f-8', name: 'FIBER OPTIC CABLE ADSS 24 CORE ( 4 TUBE ) 2 KM', price_isp: 10999000, price_msrp: 12208890 },
+                { id: 'def-f-9', name: 'FIBER OPTIC CABLE ADSS 12 CORE ( 2 TUBE ) 4 KM', price_isp: 14900000, price_msrp: 16539000 },
+                { id: 'def-f-10', name: 'FIBER OPTIC CABLE ADSS 12 CORE ( 2 TUBE ) 2 KM', price_isp: 7850000, price_msrp: 8713500 },
+                { id: 'def-f-11', name: 'FIBER OPTIC CABLE FIG 8 ( 2 SELING ) 12 CORE', price_isp: 4900, price_msrp: 5439 },
+                { id: 'def-f-12', name: 'FIBER OPTIC CABLE FIG 8 ( 2 SELING ) 24 CORE', price_isp: 6500, price_msrp: 7215 },
+                { id: 'def-f-13', name: 'FIBER OPTIC CABLE FIG 8 ( 2 SELING ) 48 CORE', price_isp: 8900, price_msrp: 9879 },
+                { id: 'def-f-14', name: 'FAST CONNECTOR SC/UPC', price_isp: 3500, price_msrp: 3885 },
+                { id: 'def-f-15', name: 'PIGTAIL SC/UPC', price_isp: 3500, price_msrp: 3885 },
+                { id: 'def-f-16', name: 'PATCHORD SC/UPC 1 METER', price_isp: 11000, price_msrp: 12210 },
+                { id: 'def-f-17', name: 'PATCHORD SC/UPC 3 METER', price_isp: 13000, price_msrp: 14430 },
+                { id: 'def-f-18', name: 'PATCHORD SC/UPC 5 METER', price_isp: 15000, price_msrp: 16650 },
+                { id: 'def-f-19', name: 'PATCHORD SC/UPC 10 METER', price_isp: 18000, price_msrp: 19980 },
+                { id: 'def-f-20', name: 'PATCHORD SC/UPC 20 METER', price_isp: 25000, price_msrp: 27750 },
+                { id: 'def-f-21', name: 'ADAPTOR SC/UPC', price_isp: 2500, price_msrp: 2775 },
+                { id: 'def-f-22', name: 'DOME FIBER OPTIC JOINT CLOSURE 48 CORES', price_isp: 350000, price_msrp: 388500 },
+                { id: 'def-f-23', name: 'DOME FIBER OPTIC JOINT CLOSURE 96 CORES', price_isp: 450000, price_msrp: 499500 },
+                { id: 'def-f-24', name: 'HORIZONTAL FIBER OPTIC JOINT CLOSURE 12 CORES', price_isp: 135000, price_msrp: 149850 },
+                { id: 'def-f-25', name: 'HORIZONTAL FIBER OPTIC JOINT CLOSURE 24 CORES', price_isp: 145000, price_msrp: 160950 },
+                { id: 'def-f-26', name: 'Mini PLC splitter 1*16 SC/UPC', price_isp: 93000, price_msrp: 103230 },
+                { id: 'def-f-27', name: 'Mini PLC splitter 1*8 SC/UPC', price_isp: 49000, price_msrp: 54390 },
+                { id: 'def-f-28', name: 'Mini PLC splitter 1*4 SC/UPC', price_isp: 39000, price_msrp: 43290 },
+                { id: 'def-f-29', name: 'OPTIC DISTRIBUTION BOX 8 CORES with 1*8 cassette PLC splitter', price_isp: 125000, price_msrp: 138750 },
+                { id: 'def-f-30', name: 'OPTIC DISTRIBUTION BOX 16 CORES with 1*16 cassette PLC splitter', price_isp: 225000, price_msrp: 249750 },
+                { id: 'def-f-31', name: 'OPTIC DISTRIBUTION BOX 32 CORES with 1*16 cassette PLC splitter', price_isp: 270000, price_msrp: 299700 },
+                { id: 'def-f-32', name: 'OPTICAL DISTRIBUTION FRAME (ODF) 48 CORES...', price_isp: 799000, price_msrp: 886890 },
+                { id: 'def-f-33', name: 'OPTICAL DISRIBUTION FRAME (ODF) 96 CORES...', price_isp: 1275000, price_msrp: 1415250 },
+                { id: 'def-f-34', name: 'DEAD END 16- 25MM Lengkap beserta Kupingan', price_isp: 16000, price_msrp: 17760 },
+                { id: 'def-f-35', name: 'DEAD END 25- 50MM Lengkap beserta Kupingan', price_isp: 17000, price_msrp: 18870 },
+                { id: 'def-f-36', name: 'DEAD END STRAIN Plastik Lengkap beserta Kupingan', price_isp: 9900, price_msrp: 10989 },
+                { id: 'def-f-37', name: 'PRPRECON /PATCHORD G657A1 2 CORE100M', price_isp: 160000, price_msrp: 177600 },
+                { id: 'def-f-38', name: 'PRPRECON /PATCHORD G657A1 2 CORE150M', price_isp: 210000, price_msrp: 233100 },
+                { id: 'def-f-39', name: 'PRPRECON /PATCHORD G657A1 2 CORE200M', price_isp: 260000, price_msrp: 288600 },
+                { id: 'def-f-40', name: 'PRPRECON /PATCHORD G657A1 2 CORE300M', price_isp: 390000, price_msrp: 432900 },
+                { id: 'def-f-41', name: 'PRPRECON /PATCHORD G657A1 2 CORE50M', price_isp: 99000, price_msrp: 109890 },
+                { id: 'def-f-42', name: 'PRPRECON /PATCHORD G657A2 2 CORE100M', price_isp: 172500, price_msrp: 191475 },
+                { id: 'def-f-43', name: 'PRPRECON /PATCHORD G657A2 2 CORE150M', price_isp: 228750, price_msrp: 253913 },
+                { id: 'def-f-44', name: 'PRPRECON /PATCHORD G657A2 2 CORE200M', price_isp: 285000, price_msrp: 316350 },
+                { id: 'def-f-45', name: 'PRPRECON /PATCHORD G657A2 2 CORE300M', price_isp: 427500, price_msrp: 474525 },
+                { id: 'def-f-46', name: 'PRPRECON /PATCHORD G657A2 2 CORE50M', price_isp: 105250, price_msrp: 116828 },
+                { id: 'def-f-47', name: 'SUSPENSION CORONG untuk kabel bulat 1-288 core', price_isp: 16000, price_msrp: 17760 },
+                { id: 'def-f-48', name: 'TOTOLINK G1200SE DUAL BAND', price_isp: 350000, price_msrp: 390000 },
+                { id: 'def-f-49', name: 'TOTOLINK G300L SINGLE BAND', price_isp: 190000, price_msrp: 225000 }
             ];
 
             let priceList = [];
             let specialPrices = {};
             let orderLog = [];
 
-            // --- Element References ---
             const customerInputs = {
                 name: document.getElementById('customerName'),
                 keterangan: document.getElementById('keterangan')
             };
             
-            // Modal List Harga
             const modal = document.getElementById('priceListModal');
             const closeModalBtn = document.getElementById('closeModalBtn');
             const openPriceListModalBtn = document.getElementById('openPriceListModalBtn');
@@ -208,24 +266,20 @@
             const uploadStatus = document.getElementById('uploadStatus');
             const priceListTableBody = document.getElementById('priceListTableBody');
             
-            // Modal Preview WA
             const previewModal = document.getElementById('whatsappPreviewModal');
             const closePreviewModalBtn = document.getElementById('closePreviewModalBtn');
             const whatsappPreviewText = document.getElementById('whatsappPreviewText');
             const copyToClipboardBtn = document.getElementById('copyToClipboardBtn');
             const copySuccessMsg = document.getElementById('copySuccessMsg');
 
-            // Form Utama
             const orderRowsBody = document.getElementById('order-rows-body');
             const grandTotalEl = document.getElementById('grand-total');
             const submitOrderBtn = document.getElementById('submit-order');
             const resetFormBtn = document.getElementById('reset-form');
 
-            // Log Pesanan
             const orderLogSection = document.getElementById('orderLogSection');
             const orderLogContent = document.getElementById('orderLogContent');
 
-            // --- Utility Functions ---
             function formatCurrency(num) {
                 return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
             }
@@ -245,7 +299,6 @@
                 return parseInt(cleaned, 10) || 0;
             }
 
-            // --- Inisialisasi Aplikasi ---
             function initialize() {
                 loadPriceList();
                 loadCustomerData();
@@ -258,15 +311,12 @@
                 renderOrderLog();
             }
 
-            // --- Fungsi Data Handling (Local Storage) ---
             function loadPriceList() {
-                // (DIUBAH) Cek local storage. Jika kosong, gunakan data default.
                 const storedList = localStorage.getItem(PRICE_LIST_STORAGE_KEY);
-                if (storedList && storedList.length > 2) { // Cek jika ada data di storage
+                if (storedList && storedList.length > 2) { 
                     priceList = JSON.parse(storedList);
-                } else { // Jika tidak, pakai data default
+                } else { 
                     priceList = defaultPriceList;
-                    // (Tidak perlu save ke storage, biarkan default sampai user upload)
                 }
                 priceList.sort((a, b) => a.name.localeCompare(b.name));
             }
@@ -307,9 +357,8 @@
                 localStorage.setItem(ORDER_LOG_STORAGE_KEY, JSON.stringify(orderLog));
             }
 
-            // --- Fungsi Rendering ---
             function createOrderRows() {
-                orderRowsBody.innerHTML = ''; // Kosongkan dulu
+                orderRowsBody.innerHTML = ''; 
                 for (let i = 0; i < NUM_ROWS; i++) {
                     const tr = document.createElement('tr');
                     tr.id = `row-${i}`;
@@ -337,13 +386,13 @@
                 itemSelects.forEach(select => {
                     const currentVal = select.value;
                     select.innerHTML = `<option value="">-- Pilih Barang --</option>${optionsHtml}`;
-                    select.value = currentVal; // Pertahankan value jika masih ada
+                    select.value = currentVal; 
                 });
             }
 
             function renderPriceListTable() {
                 if (!priceListTableBody) return;
-                priceListTableBody.innerHTML = ''; // Kosongkan
+                priceListTableBody.innerHTML = ''; 
                 
                 if (priceList.length === 0) {
                     priceListTableBody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-500">List harga masih kosong.</td></tr>';
@@ -370,7 +419,7 @@
                 }
                 
                 orderLogSection.classList.remove('hidden');
-                orderLog.slice().reverse().forEach((log, index) => { // Tampilkan dari terbaru
+                orderLog.slice().reverse().forEach((log, index) => { 
                     const logEntry = document.createElement('div');
                     logEntry.classList.add('p-4', 'border', 'rounded-md', 'bg-gray-50');
                     
@@ -388,7 +437,6 @@
                 });
             }
 
-            // --- Fungsi Kalkulasi ---
             function updateRow(rowId) {
                 const itemSelect = document.querySelector(`#row-${rowId} .item-select`);
                 const priceTypeSelect = document.querySelector(`#row-${rowId} .price-type-select`);
@@ -413,7 +461,7 @@
                             price = item.price_msrp;
                             priceInput.value = formatCurrency(price);
                             priceInput.disabled = true;
-                        } else { // Special
+                        } else { 
                             priceInput.disabled = false;
                             const specialPrice = specialPrices[selectedItemId];
                             if (specialPrice) {
@@ -456,7 +504,6 @@
                 saveCustomerData();
             }
 
-            // --- Event Handlers ---
             function setupEventListeners() {
                 customerInputs.name.addEventListener('blur', saveCustomerData);
                 customerInputs.keterangan.addEventListener('blur', saveCustomerData);
@@ -496,20 +543,28 @@
                 setupPreviewModalListeners();
             }
             
+            // (DIUBAH) Handle Submit - FORMAT BARU: Tanggal & Format Item
             function handleSubmit() {
+                // Format Tanggal: "19 Nov 2025, 10.29"
+                const now = new Date();
+                const options = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+                const timestampStr = now.toLocaleString('id-ID', options).replace(/\./g, '.');
+
                 const orderData = {
                     customerName: customerInputs.name.value,
                     keterangan: customerInputs.keterangan.value,
-                    timestamp: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }),
+                    timestamp: timestampStr,
                     items: [],
                     grandTotal: 0
                 };
                 
+                // Header
                 let waText = `*ORDER*\n`;
                 waText += `*Tanggal:* ${orderData.timestamp}\n`;
                 waText += `*Customer:* ${orderData.customerName || '-'}\n`;
-                waText += `*Keterangan:* \n${orderData.keterangan || '-'}\n`;
-                waText += "--------------------------------------\n";
+                
+                waText += "\n--------------------------------------\n";
+                waText += "*Detail Pesanan:*\n\n";
 
                 let hasItems = false;
                 for (let i = 0; i < NUM_ROWS; i++) {
@@ -527,9 +582,13 @@
                         const bonus = row.querySelector('.bonus-input').value.trim();
                         const rowTotal = qty * price;
                         
+                        // Format Price Type Title Case (Special, ISP, MSRP)
+                        let pType = priceTypeSelect.options[priceTypeSelect.selectedIndex].text;
+                        if (pType.toLowerCase() === 'special') pType = 'Special';
+
                         const itemData = {
                             name: item ? item.name : 'Barang Tidak Dikenal',
-                            priceType: priceTypeSelect.options[priceTypeSelect.selectedIndex].text,
+                            priceType: pType,
                             qty: qty,
                             price: price,
                             bonus: bonus,
@@ -537,12 +596,14 @@
                         };
                         orderData.items.push(itemData);
                         
-                        waText += `*${itemData.qty}x* ${itemData.name}\n`;
-                        waText += `(${itemData.priceType}) @ ${formatCurrency(itemData.price)}\n`;
+                        // (DIUBAH) Format Item Persis Sesuai Permintaan
+                        waText += `*${itemData.name}*\n`; 
+                        waText += `${itemData.qty} pcs @ ${formatCurrency(itemData.price)} (${itemData.priceType})\n`;
                         if (itemData.bonus) {
-                            waText += `*Bonus:* ${itemData.bonus}\n`;
+                            waText += `Bonus/Ket: ${itemData.bonus}\n`;
                         }
-                        waText += `*Total :* ${formatCurrency(itemData.rowTotal)}\n\n`;
+                        waText += `Total: ${formatCurrency(itemData.rowTotal)}\n`;
+                        waText += `\n`; 
                     }
                 }
                 
@@ -556,7 +617,9 @@
                 
                 waText += "--------------------------------------\n";
                 waText += `*GRAND TOTAL: ${formatCurrency(grandTotal)}*\n\n`;
-                waText += "Terima kasih.";
+                
+                // Keterangan di Paling Bawah
+                waText += `*Keterangan:* \n${orderData.keterangan || '-'}\n`;
 
                 orderLog.push(orderData);
                 saveOrderLog();
@@ -565,7 +628,6 @@
                 showPreviewModal(waText);
             }
 
-            // --- Logika Modal ---
             function setupModalListeners() {
                 openPriceListModalBtn.addEventListener('click', () => {
                     modal.classList.remove('hidden');
@@ -582,7 +644,6 @@
                 setTimeout(() => modal.classList.add('hidden'), 300);
             }
             
-            // (DIUBAH TOTAL) Fungsi Upload CSV Sederhana 3-Kolom
             function handleCsvUpload(e) {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -594,20 +655,18 @@
                 priceListTableBody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-500">Memproses...</td></tr>';
 
                 Papa.parse(file, {
-                    header: false, // Tidak ada header
+                    header: false, 
                     skipEmptyLines: true,
                     complete: (results) => {
                         let newPriceList = [];
                         let processedCount = 0;
 
                         results.data.forEach((row) => {
-                            // Format: Kolom A (0), Kolom B (1), Kolom C (2)
                             if (row.length >= 3) {
                                 const name = String(row[0] || '').trim();
                                 const isp = parsePriceString(row[1]);
                                 const msrp = parsePriceString(row[2]);
 
-                                // Validasi data
                                 if (name && name.length > 2 && isp > 0 && msrp > 0) {
                                     newPriceList.push({
                                         id: `item-${Date.now()}-${processedCount++}`,
@@ -623,9 +682,9 @@
                             uploadStatus.textContent = 'Upload Gagal. Tidak ada data valid (format 3-kolom) yang ditemukan.';
                             uploadStatus.classList.remove('text-blue-600');
                             uploadStatus.classList.add('text-red-600');
-                            renderPriceListTable(); // Tampilkan list lama
+                            renderPriceListTable(); 
                         } else {
-                            priceList = newPriceList; // Ganti total list lama
+                            priceList = newPriceList; 
                             priceList.sort((a, b) => a.name.localeCompare(b.name));
                             savePriceList();
                             
@@ -638,12 +697,11 @@
                         uploadStatus.textContent = `Error: ${err.message}`;
                         uploadStatus.classList.remove('text-blue-600');
                         uploadStatus.classList.add('text-red-600');
-                        renderPriceListTable(); // Tampilkan list lama
+                        renderPriceListTable(); 
                     }
                 });
             }
 
-            // --- Logika Modal Preview & Log ---
             function setupPreviewModalListeners() {
                 closePreviewModalBtn.addEventListener('click', () => {
                     previewModal.classList.add('opacity-0');
@@ -674,7 +732,6 @@
                 setTimeout(() => previewModal.classList.remove('opacity-0'), 10);
             }
 
-            // Jalankan aplikasi
             initialize();
         });
     </script>

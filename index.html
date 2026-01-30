@@ -12,123 +12,168 @@
         .modal { transition: opacity 0.3s ease; }
         input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         
-        /* Layout Tabel */
-        .col-no { width: 30px; text-align: center; }
-        .col-name { min-width: 250px; } 
-        .col-type { width: 85px; }
-        .col-qty { width: 60px; }
-        .col-weight { width: 80px; text-align: center; background-color: #f3f4f6; font-size: 0.75rem; color: #4b5563; }
-        .col-cbm { width: 80px; text-align: center; background-color: #f3f4f6; font-size: 0.75rem; color: #4b5563; }
-        .col-price { width: 120px; }
-        .col-bonus { width: 100px; }
-        .col-total { width: 130px; text-align: right; }
-        
+        /* --- LAYOUT TABEL RESPONSIF & COMPACT --- */
         table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        th { position: sticky; top: 0; z-index: 10; background: #f3f4f6; }
-        td, th { padding: 6px 4px; vertical-align: middle; font-size: 0.8rem; border-bottom: 1px solid #e5e7eb; }
         
-        .form-input-sm { @apply w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500; }
-        .form-select-sm { @apply w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500; }
+        /* Sticky Header */
+        th { 
+            position: sticky; top: 0; z-index: 10; 
+            background: #f3f4f6; 
+            font-size: 0.75rem; /* Font header lebih kecil */
+            font-weight: 700;
+            color: #374151;
+            padding: 8px 4px;
+            white-space: nowrap; /* Header tidak turun baris */
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        
+        /* Cell Styles */
+        td { 
+            padding: 4px 2px; 
+            vertical-align: middle; 
+            border-bottom: 1px solid #e5e7eb; 
+        }
+
+        /* Lebar Kolom Dioptimalkan untuk HP */
+        .col-no { width: 25px; text-align: center; }
+        .col-name { 
+            min-width: 140px; /* Jauh lebih kecil dari 250px sebelumnya */
+            max-width: 220px; /* Batas maksimal agar tidak terlalu lebar */
+        } 
+        .col-type { width: 75px; }
+        .col-qty { width: 50px; }
+        .col-weight { width: 60px; text-align: center; background-color: #f9fafb; font-size: 0.7rem; color: #6b7280; }
+        .col-cbm { width: 60px; text-align: center; background-color: #f9fafb; font-size: 0.7rem; color: #6b7280; }
+        .col-price { width: 100px; }
+        .col-bonus { width: 80px; }
+        .col-total { width: 110px; text-align: right; }
+        
+        /* Input Styles */
+        .form-input-sm { 
+            @apply w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white; 
+            min-height: 30px; /* Tinggi input pas untuk jari */
+        }
+        .form-select-sm { 
+            @apply w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white; 
+            min-height: 30px;
+            text-overflow: ellipsis; /* Teks panjang dipotong ... */
+        }
+
+        /* KHUSUS TAMPILAN HP (Mobile) */
+        @media (max-width: 640px) {
+            .col-name { min-width: 120px; max-width: 160px; } /* Lebih compact di HP */
+            .col-type { width: 65px; }
+            .col-price { width: 85px; }
+            th, td { font-size: 0.7rem; } /* Font tabel lebih kecil di HP */
+            .container { padding: 0.5rem; }
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <div class="container mx-auto p-4 max-w-[98%]">
-        <header class="mb-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center">
+    <div class="container mx-auto p-2 md:p-4 max-w-full md:max-w-[98%]">
+        <header class="mb-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Formulir Data Order</h1>
-                <p class="text-xs text-green-600 font-bold"><i class="fas fa-check"></i> Support File Excel (.xls / .xlsx) Langsung</p>
+                <h1 class="text-xl md:text-2xl font-bold text-gray-900">Formulir Data Order</h1>
+                <p class="text-xs text-green-600 font-bold flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    Support Excel XLS/XLSX
+                </p>
             </div>
-            <button onclick="toggleModal('priceListModal', true)" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold shadow flex items-center gap-2">
+            <button onclick="toggleModal('priceListModal', true)" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold shadow flex justify-center items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                Update Database Harga
+                Update Database
             </button>
         </header>
 
         <!-- 1. DATA PELANGGAN -->
-        <section class="mb-4 bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-            <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">I. Data Pelanggan</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <section class="mb-3 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">I. Data Pelanggan</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Pelanggan</label>
-                    <input type="text" id="customerName" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none" placeholder="Nama PT / Orang">
+                    <input type="text" id="customerName" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none" placeholder="Nama Pelanggan / PT">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Keterangan / Alamat</label>
-                    <input type="text" id="keterangan" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none" placeholder="Alamat kirim, No HP, dll">
+                    <input type="text" id="keterangan" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none" placeholder="Alamat / Keterangan Lain">
                 </div>
             </div>
         </section>
 
         <!-- 2. TABEL PESANAN -->
-        <section class="mb-6 bg-white p-5 rounded-lg shadow-sm border border-gray-200">
-            <div class="flex justify-between items-center mb-3">
-                <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide">II. Detail Pesanan</h2>
-                <div class="flex gap-2">
-                    <span class="text-xs text-gray-400 italic self-center mr-2">*Total Barang di Database: <span id="dbCount" class="font-bold text-blue-600">0</span></span>
-                    <button onclick="addNewRow()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded text-xs font-bold border border-gray-300">+ Tambah Baris</button>
+        <section class="mb-6 bg-white p-2 md:p-4 rounded-lg shadow-sm border border-gray-200">
+            <div class="flex justify-between items-center mb-2 px-1">
+                <h2 class="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-wide">II. Detail Pesanan</h2>
+                <div class="flex gap-2 items-center">
+                    <span class="hidden md:inline text-xs text-gray-400 italic mr-1">Database: <span id="dbCount" class="font-bold text-blue-600">0</span> item</span>
+                    <button onclick="addNewRow()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded text-xs font-bold border border-gray-300 flex items-center gap-1">
+                        <span>+</span> Baris
+                    </button>
                 </div>
             </div>
 
-            <div class="overflow-x-auto border rounded-lg max-h-[600px]">
+            <!-- Container Scroll Horizontal -->
+            <div class="overflow-x-auto border rounded-lg max-h-[60vh] md:max-h-[600px] relative">
                 <table class="min-w-full">
-                    <thead class="bg-gray-100 text-gray-700 text-xs uppercase font-bold">
+                    <thead class="bg-gray-100 text-gray-700">
                         <tr>
                             <th class="col-no">#</th>
-                            <th class="col-name text-left pl-3">Nama Barang</th>
+                            <th class="col-name text-left pl-2">Nama Barang</th>
                             <th class="col-type text-left">Tipe</th>
                             <th class="col-qty text-center">Qty</th>
-                            <th class="col-weight border-l">Berat (Kg)</th>
-                            <th class="col-cbm border-l border-r">Vol (M³)</th>
-                            <th class="col-price text-left pl-2">Harga @</th>
+                            <th class="col-weight border-l" title="Berat">Kg</th>
+                            <th class="col-cbm border-l border-r" title="Volume">M³</th>
+                            <th class="col-price text-left pl-2">Harga</th>
                             <th class="col-bonus text-left">Bonus</th>
-                            <th class="col-total pr-3">Subtotal</th>
+                            <th class="col-total pr-2">Total</th>
                             <th class="w-8 text-center"></th>
                         </tr>
                     </thead>
                     <tbody id="order-rows-body" class="text-sm bg-white divide-y divide-gray-100"></tbody>
-                    <tfoot class="text-sm bg-gray-50 font-bold sticky bottom-0 z-10 shadow-[0_-2px_4px_rgba(0,0,0,0.05)]">
-                        <tr class="border-t-2 border-gray-200">
-                            <td colspan="4" class="text-right py-3 pr-3 text-gray-600">TOTAL LOGISTIK:</td>
-                            <td class="text-center py-3 bg-gray-100 border-l border-gray-200 text-gray-800"><span id="total-weight">0</span></td>
-                            <td class="text-center py-3 bg-gray-100 border-l border-r border-gray-200 text-gray-800"><span id="total-cbm">0</span></td>
+                    <tfoot class="text-sm bg-gray-50 font-bold sticky bottom-0 z-20 shadow-inner">
+                        <tr class="border-t border-gray-300">
+                            <td colspan="4" class="text-right py-2 pr-2 text-xs text-gray-500 uppercase">Total Logistik:</td>
+                            <td class="text-center py-2 bg-gray-100 border-l border-gray-300 text-gray-800 text-xs"><span id="total-weight">0</span></td>
+                            <td class="text-center py-2 bg-gray-100 border-l border-r border-gray-300 text-gray-800 text-xs"><span id="total-cbm">0</span></td>
                             <td colspan="4"></td>
                         </tr>
-                        <tr class="bg-blue-50 border-t border-blue-100 text-blue-900">
-                            <td colspan="8" class="text-right py-4 pr-4 text-lg">GRAND TOTAL RUPIAH:</td>
-                            <td id="grand-total" class="text-right py-4 pr-3 text-lg">Rp 0</td>
+                        <tr class="bg-blue-50 border-t border-blue-200 text-blue-900">
+                            <td colspan="8" class="text-right py-3 pr-3 text-sm md:text-lg">TOTAL:</td>
+                            <td id="grand-total" class="text-right py-3 pr-2 text-sm md:text-lg font-extrabold">Rp 0</td>
                             <td></td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
             
-            <div class="mt-4 text-center">
-                 <button onclick="addNewRow()" class="w-full py-2 border-2 border-dashed border-gray-300 text-gray-500 rounded hover:bg-gray-50 hover:border-gray-400 font-bold text-sm transition">+ Klik untuk menambah baris pesanan</button>
+            <div class="mt-3 text-center md:hidden">
+                 <button onclick="addNewRow()" class="w-full py-3 border-2 border-dashed border-gray-300 text-gray-500 rounded-lg hover:bg-gray-50 font-bold text-sm">+ Tambah Barang</button>
             </div>
         </section>
 
         <!-- 3. TOMBOL AKSI -->
-        <section class="flex justify-end gap-3 mb-10 sticky bottom-4 z-20">
+        <section class="flex flex-col md:flex-row justify-end gap-3 mb-10 sticky bottom-4 z-30 px-1 md:px-0">
             <input type="hidden" id="edit-log-id" value="">
             <button id="cancel-edit-btn" class="hidden bg-red-500 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-red-600 transition">Batal Edit</button>
-            <button onclick="resetAll()" class="bg-white text-gray-700 border border-gray-300 font-bold py-3 px-6 rounded-full shadow-lg hover:bg-gray-100 transition">Reset Form</button>
-            <button onclick="submitOrder()" class="bg-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-green-700 transition transform hover:-translate-y-1 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-                Simpan & Preview WA
-            </button>
+            
+            <div class="flex gap-2 w-full md:w-auto">
+                <button onclick="resetAll()" class="flex-1 md:flex-none bg-white text-gray-700 border border-gray-300 font-bold py-3 px-6 rounded-full shadow-lg hover:bg-gray-100 transition text-sm">Reset</button>
+                <button onclick="submitOrder()" class="flex-1 md:flex-none bg-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-green-700 transition transform active:scale-95 flex justify-center items-center gap-2 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                    Simpan & WA
+                </button>
+            </div>
         </section>
 
         <!-- 4. LOG PESANAN -->
-        <section id="orderLogSection" class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hidden">
-            <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">Riwayat Pesanan</h2>
-            <div id="orderLogContent" class="space-y-3 max-h-[400px] overflow-y-auto pr-2"></div>
+        <section id="orderLogSection" class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hidden">
+            <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Riwayat Pesanan</h2>
+            <div id="orderLogContent" class="space-y-2 max-h-[300px] overflow-y-auto pr-1"></div>
         </section>
     </div>
 
     <!-- MODAL UPLOAD -->
     <div id="priceListModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
             <div class="bg-gray-800 text-white p-4 flex justify-between items-center">
                 <h3 class="font-bold text-lg">Update Database Harga</h3>
                 <button onclick="toggleModal('priceListModal', false)" class="text-gray-400 hover:text-white text-2xl">&times;</button>
@@ -138,9 +183,8 @@
                 <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-r text-sm text-blue-800">
                     <p class="font-bold mb-1">Panduan Upload Excel:</p>
                     <ul class="list-disc list-inside space-y-1 text-xs">
-                        <li>Anda bisa upload langsung file <strong>.XLS</strong> atau <strong>.XLSX</strong>.</li>
-                        <li>Tidak perlu convert ke CSV lagi.</li>
-                        <li>Sistem akan mencari kolom: <strong>Nama, ISP, MSRP, Berat, CBM</strong>.</li>
+                        <li>File <strong>.XLS</strong> atau <strong>.XLSX</strong>.</li>
+                        <li>Sistem mencari kolom: <strong>Nama, ISP, MSRP, Berat, CBM</strong>.</li>
                     </ul>
                 </div>
 
@@ -148,25 +192,17 @@
                     <input type="file" id="fileInput" accept=".csv, .xls, .xlsx" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleFileUpload(this)">
                     <div class="pointer-events-none">
                         <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                        <p class="mt-1 text-sm text-gray-600">Klik area ini untuk memilih file Excel (.xls/.xlsx)</p>
+                        <p class="mt-1 text-sm text-gray-600">Klik area ini untuk memilih file Excel</p>
                         <p id="fileNameDisplay" class="mt-2 text-xs font-bold text-blue-600"></p>
                     </div>
                 </div>
 
                 <div id="uploadResult" class="mt-6 hidden">
                     <div id="uploadStatusMsg" class="text-center font-bold text-sm mb-4"></div>
-                    
-                    <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Preview 5 Data Teratas:</h4>
                     <div class="overflow-x-auto border rounded bg-white">
                         <table class="w-full text-left text-xs">
                             <thead class="bg-gray-100 border-b">
-                                <tr>
-                                    <th class="p-2">Nama Barang</th>
-                                    <th class="p-2">Harga ISP</th>
-                                    <th class="p-2">Harga MSRP</th>
-                                    <th class="p-2">Berat</th>
-                                    <th class="p-2">CBM</th>
-                                </tr>
+                                <tr><th class="p-2">Nama</th><th class="p-2">ISP</th><th class="p-2">MSRP</th><th class="p-2">Berat</th><th class="p-2">CBM</th></tr>
                             </thead>
                             <tbody id="previewBody"></tbody>
                         </table>
@@ -178,16 +214,16 @@
 
     <!-- MODAL WA PREVIEW -->
     <div id="waModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg">
-            <div class="p-4 border-b flex justify-between items-center">
-                <h3 class="font-bold">Preview Pesanan WhatsApp</h3>
-                <button onclick="toggleModal('waModal', false)" class="text-2xl">&times;</button>
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
+            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
+                <h3 class="font-bold text-gray-800">Preview Pesanan</h3>
+                <button onclick="toggleModal('waModal', false)" class="text-2xl text-gray-500">&times;</button>
             </div>
-            <div class="p-4">
-                <textarea id="waText" class="w-full h-64 border rounded p-3 text-xs font-mono bg-gray-50 focus:outline-none" readonly></textarea>
-                <div class="grid grid-cols-2 gap-3 mt-4">
-                    <button onclick="copyWA()" class="bg-gray-200 text-gray-800 py-2 rounded text-sm font-bold hover:bg-gray-300">Salin Teks</button>
-                    <button onclick="openWA()" class="bg-green-600 text-white py-2 rounded text-sm font-bold hover:bg-green-700">Buka WhatsApp</button>
+            <div class="p-4 flex-1 overflow-hidden flex flex-col">
+                <textarea id="waText" class="w-full flex-1 border rounded p-3 text-xs font-mono bg-white focus:outline-none resize-none mb-4" readonly></textarea>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="copyWA()" class="bg-gray-200 text-gray-800 py-3 rounded-lg text-sm font-bold hover:bg-gray-300">Salin Teks</button>
+                    <button onclick="openWA()" class="bg-green-600 text-white py-3 rounded-lg text-sm font-bold hover:bg-green-700 shadow-md">Buka WhatsApp</button>
                 </div>
             </div>
         </div>
@@ -248,7 +284,7 @@
             tr.id = `row-${i}`;
             tr.className = "hover:bg-blue-50 transition";
             tr.innerHTML = `
-                <td class="col-no text-center text-gray-400 font-mono idx">${i+1}</td>
+                <td class="col-no text-center text-gray-400 font-mono idx text-[10px] md:text-xs">${i+1}</td>
                 <td class="col-name"><select class="item-select form-select-sm" onchange="updateRow(${i})"><option value="">-- Pilih Barang --</option></select></td>
                 <td class="col-type"><select class="type-select form-select-sm" onchange="updateRow(${i})"><option value="isp">ISP</option><option value="msrp">MSRP</option><option value="special">Special</option></select></td>
                 <td class="col-qty"><input type="number" class="qty-input form-input-sm text-center" placeholder="0" oninput="updateRow(${i})"></td>
@@ -257,7 +293,7 @@
                 <td class="col-price"><input type="text" class="price-input form-input-sm text-right" disabled placeholder="0" onkeyup="formatInput(this); updateRow(${i})"></td>
                 <td class="col-bonus"><input type="text" class="bonus-input form-input-sm" placeholder="-"></td>
                 <td class="col-total"><span class="val-total block font-bold text-gray-700">0</span></td>
-                <td class="text-center"><button onclick="removeRow(this)" class="text-red-300 hover:text-red-500 text-xs">x</button></td>
+                <td class="text-center"><button onclick="removeRow(this)" class="text-red-300 hover:text-red-500 font-bold px-1">&times;</button></td>
             `;
             tbody.appendChild(tr);
         }
@@ -269,7 +305,6 @@
             // Renumber
             document.querySelectorAll('#order-rows-body tr').forEach((tr, idx) => {
                 tr.querySelector('.idx').textContent = idx + 1;
-                // Note: ID tidak diubah untuk performa, fungsi updateRow pake ID lama gpp
             });
         }
 

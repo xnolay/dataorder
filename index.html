@@ -3,711 +3,554 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulir Data Order</title>
+    <title>Formulir Data Order (Support Excel XLS/XLSX)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Library PapaParse untuk membaca CSV -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <!-- SheetJS: Library Sakti untuk baca Excel langsung -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .modal { transition: opacity 0.3s ease; }
-        .modal-content { transition: transform 0.3s ease; }
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type="number"] { -moz-appearance: textfield; }
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         
-        /* (DIUBAH) CSS Tabel Presisi */
-        .col-no { width: 40px; text-align: center; }
-        .col-name { width: auto; } /* Sisa ruang untuk nama */
-        .col-type { width: 100px; }
-        .col-qty { width: 70px; }
-        .col-price { width: 130px; }
-        .col-bonus { width: 120px; }
-        .col-total { width: 140px; text-align: right; }
+        /* Layout Tabel */
+        .col-no { width: 30px; text-align: center; }
+        .col-name { min-width: 250px; } 
+        .col-type { width: 85px; }
+        .col-qty { width: 60px; }
+        .col-weight { width: 80px; text-align: center; background-color: #f3f4f6; font-size: 0.75rem; color: #4b5563; }
+        .col-cbm { width: 80px; text-align: center; background-color: #f3f4f6; font-size: 0.75rem; color: #4b5563; }
+        .col-price { width: 120px; }
+        .col-bonus { width: 100px; }
+        .col-total { width: 130px; text-align: right; }
         
-        table { width: 100%; border-collapse: collapse; }
-        td, th { padding: 8px 6px; vertical-align: middle; font-size: 0.85rem; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        th { position: sticky; top: 0; z-index: 10; background: #f3f4f6; }
+        td, th { padding: 6px 4px; vertical-align: middle; font-size: 0.8rem; border-bottom: 1px solid #e5e7eb; }
         
-        .form-input-sm {
-            @apply w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500;
-        }
-        .form-select-sm {
-            @apply w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500;
-        }
+        .form-input-sm { @apply w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500; }
+        .form-select-sm { @apply w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <div class="container mx-auto p-2 md:p-6 max-w-7xl">
-        <header class="mb-6 bg-white p-6 rounded-lg shadow">
-            <h1 class="text-3xl font-bold text-gray-900">Formulir Data Order</h1>
+    <div class="container mx-auto p-4 max-w-[98%]">
+        <header class="mb-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Formulir Data Order</h1>
+                <p class="text-xs text-green-600 font-bold"><i class="fas fa-check"></i> Support File Excel (.xls / .xlsx) Langsung</p>
+            </div>
+            <button onclick="toggleModal('priceListModal', true)" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold shadow flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                Update Database Harga
+            </button>
         </header>
 
-        <!-- Bagian Data Pelanggan -->
-        <section class="mb-6 bg-white p-6 rounded-lg shadow">
-            <h2 class="text-xl font-semibold mb-4 border-b pb-2">Data Pelanggan</h2>
+        <!-- 1. DATA PELANGGAN -->
+        <section class="mb-4 bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+            <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">I. Data Pelanggan</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label for="customerName" class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
-                    <input type="text" id="customerName" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nama Pelanggan</label>
+                    <input type="text" id="customerName" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none" placeholder="Nama PT / Orang">
                 </div>
                 <div>
-                    <label for="keterangan" class="block text-sm font-medium text-gray-700 mb-1">Keterangan (Alamat, PIC, Telp, dll)</label>
-                    <textarea id="keterangan" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Masukkan alamat kirim, nama PIC, dan no telp..."></textarea>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Keterangan / Alamat</label>
+                    <input type="text" id="keterangan" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none" placeholder="Alamat kirim, No HP, dll">
                 </div>
             </div>
         </section>
 
-        <!-- Bagian Detail Pesanan -->
-        <section class="mb-6 bg-white p-4 rounded-lg shadow">
-            <div class="flex justify-between items-center mb-4 border-b pb-2">
-                <h2 class="text-xl font-semibold">Detail Pesanan</h2>
-                <div class="space-x-2">
-                    <button id="openPriceListModalBtn" class="text-xs md:text-sm bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded shadow">
-                        Ubah List Harga
-                    </button>
+        <!-- 2. TABEL PESANAN -->
+        <section class="mb-6 bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide">II. Detail Pesanan</h2>
+                <div class="flex gap-2">
+                    <span class="text-xs text-gray-400 italic self-center mr-2">*Total Barang di Database: <span id="dbCount" class="font-bold text-blue-600">0</span></span>
+                    <button onclick="addNewRow()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded text-xs font-bold border border-gray-300">+ Tambah Baris</button>
                 </div>
             </div>
 
-            <!-- Tabel dengan Layout Presisi -->
-            <div class="overflow-x-auto">
-                <table class="min-w-[1000px]">
-                    <thead class="bg-gray-100 text-gray-700 text-xs uppercase font-bold border-b border-gray-300">
+            <div class="overflow-x-auto border rounded-lg max-h-[600px]">
+                <table class="min-w-full">
+                    <thead class="bg-gray-100 text-gray-700 text-xs uppercase font-bold">
                         <tr>
                             <th class="col-no">#</th>
-                            <th class="col-name text-left pl-2">Nama Barang</th>
-                            <th class="col-type text-left">Tipe Harga</th>
+                            <th class="col-name text-left pl-3">Nama Barang</th>
+                            <th class="col-type text-left">Tipe</th>
                             <th class="col-qty text-center">Qty</th>
-                            <th class="col-price text-left">Harga Satuan</th>
+                            <th class="col-weight border-l">Berat (Kg)</th>
+                            <th class="col-cbm border-l border-r">Vol (M³)</th>
+                            <th class="col-price text-left pl-2">Harga @</th>
                             <th class="col-bonus text-left">Bonus</th>
-                            <th class="col-total pr-4">Total</th>
+                            <th class="col-total pr-3">Subtotal</th>
+                            <th class="w-8 text-center"></th>
                         </tr>
                     </thead>
-                    <tbody id="order-rows-body" class="text-sm divide-y divide-gray-200">
-                        <!-- Baris akan di-generate oleh JS -->
-                    </tbody>
-                    <tfoot>
-                        <tr class="bg-blue-50 font-bold border-t-2 border-blue-200">
-                            <td colspan="6" class="text-right py-3 pr-4 text-lg text-gray-700">GRAND TOTAL:</td>
-                            <td id="grand-total" class="text-right py-3 pr-4 text-lg text-blue-800">Rp 0</td>
+                    <tbody id="order-rows-body" class="text-sm bg-white divide-y divide-gray-100"></tbody>
+                    <tfoot class="text-sm bg-gray-50 font-bold sticky bottom-0 z-10 shadow-[0_-2px_4px_rgba(0,0,0,0.05)]">
+                        <tr class="border-t-2 border-gray-200">
+                            <td colspan="4" class="text-right py-3 pr-3 text-gray-600">TOTAL LOGISTIK:</td>
+                            <td class="text-center py-3 bg-gray-100 border-l border-gray-200 text-gray-800"><span id="total-weight">0</span></td>
+                            <td class="text-center py-3 bg-gray-100 border-l border-r border-gray-200 text-gray-800"><span id="total-cbm">0</span></td>
+                            <td colspan="4"></td>
+                        </tr>
+                        <tr class="bg-blue-50 border-t border-blue-100 text-blue-900">
+                            <td colspan="8" class="text-right py-4 pr-4 text-lg">GRAND TOTAL RUPIAH:</td>
+                            <td id="grand-total" class="text-right py-4 pr-3 text-lg">Rp 0</td>
+                            <td></td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
-        </section>
-
-        <!-- Tombol Aksi -->
-        <section class="flex justify-end gap-4 bg-white p-6 rounded-lg shadow mb-8 sticky bottom-0 z-10 border-t">
-            <input type="hidden" id="edit-log-id" value="">
             
-            <button id="cancel-edit-btn" class="hidden bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-md shadow transition">
-                Batal Edit
-            </button>
-            <button id="reset-form" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-md shadow transition">
-                Reset Form
-            </button>
-            <button id="submit-order" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-md shadow transition transform hover:scale-105">
-                Submit / Simpan
+            <div class="mt-4 text-center">
+                 <button onclick="addNewRow()" class="w-full py-2 border-2 border-dashed border-gray-300 text-gray-500 rounded hover:bg-gray-50 hover:border-gray-400 font-bold text-sm transition">+ Klik untuk menambah baris pesanan</button>
+            </div>
+        </section>
+
+        <!-- 3. TOMBOL AKSI -->
+        <section class="flex justify-end gap-3 mb-10 sticky bottom-4 z-20">
+            <input type="hidden" id="edit-log-id" value="">
+            <button id="cancel-edit-btn" class="hidden bg-red-500 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-red-600 transition">Batal Edit</button>
+            <button onclick="resetAll()" class="bg-white text-gray-700 border border-gray-300 font-bold py-3 px-6 rounded-full shadow-lg hover:bg-gray-100 transition">Reset Form</button>
+            <button onclick="submitOrder()" class="bg-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-green-700 transition transform hover:-translate-y-1 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                Simpan & Preview WA
             </button>
         </section>
 
-        <!-- Bagian Log Pesanan -->
-        <section id="orderLogSection" class="bg-white p-6 rounded-lg shadow hidden">
-            <h2 class="text-xl font-semibold mb-4 border-b pb-2">Log Pesanan</h2>
-            <div id="orderLogContent" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                <!-- Log akan di-generate oleh JS -->
-            </div>
+        <!-- 4. LOG PESANAN -->
+        <section id="orderLogSection" class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hidden">
+            <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">Riwayat Pesanan</h2>
+            <div id="orderLogContent" class="space-y-3 max-h-[400px] overflow-y-auto pr-2"></div>
         </section>
     </div>
 
-    <!-- Modal Ubah List Harga -->
-    <div id="priceListModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden opacity-0 modal z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-full overflow-y-auto modal-content transform scale-95">
-            <div class="flex justify-between items-center p-5 border-b">
-                <h3 class="text-xl font-semibold">Kelola List Harga (Upload CSV)</h3>
-                <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+    <!-- MODAL UPLOAD -->
+    <div id="priceListModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="bg-gray-800 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg">Update Database Harga</h3>
+                <button onclick="toggleModal('priceListModal', false)" class="text-gray-400 hover:text-white text-2xl">&times;</button>
             </div>
-            <div class="p-6 space-y-4">
-                <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-md">
-                    <h4 class="font-bold text-sm">METODE: Upload CSV 3-Kolom</h4>
-                    <ul class="list-disc list-inside text-xs pl-2 mt-1">
-                        <li>File CSV harus **3 KOLOM SAJA** (A, B, C).</li>
-                        <li>Kolom A: Nama Barang | Kolom B: Harga ISP | Kolom C: Harga MSRP</li>
-                        <li><strong>JANGAN ADA HEADER</strong> di baris pertama.</li>
+            
+            <div class="p-6 overflow-y-auto">
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-r text-sm text-blue-800">
+                    <p class="font-bold mb-1">Panduan Upload Excel:</p>
+                    <ul class="list-disc list-inside space-y-1 text-xs">
+                        <li>Anda bisa upload langsung file <strong>.XLS</strong> atau <strong>.XLSX</strong>.</li>
+                        <li>Tidak perlu convert ke CSV lagi.</li>
+                        <li>Sistem akan mencari kolom: <strong>Nama, ISP, MSRP, Berat, CBM</strong>.</li>
                     </ul>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Upload File CSV:</label>
-                    <input type="file" id="csvFileInput" accept=".csv" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                    <span id="fileNameDisplay" class="text-xs text-gray-500 mt-1 block"></span>
+
+                <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50 hover:bg-white transition cursor-pointer relative">
+                    <input type="file" id="fileInput" accept=".csv, .xls, .xlsx" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleFileUpload(this)">
+                    <div class="pointer-events-none">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        <p class="mt-1 text-sm text-gray-600">Klik area ini untuk memilih file Excel (.xls/.xlsx)</p>
+                        <p id="fileNameDisplay" class="mt-2 text-xs font-bold text-blue-600"></p>
+                    </div>
                 </div>
-                <div id="uploadStatus" class="text-sm font-medium hidden"></div>
-                <div>
-                    <h4 class="text-sm font-semibold mb-2">Preview List Harga:</h4>
-                    <div class="border rounded-lg max-h-48 overflow-y-auto bg-gray-50 text-xs">
-                        <table class="w-full table-auto">
-                            <thead class="bg-gray-200 sticky top-0">
-                                <tr><th class="w-1/2 text-left p-2">Nama</th><th class="text-left p-2">ISP</th><th class="text-left p-2">MSRP</th></tr>
+
+                <div id="uploadResult" class="mt-6 hidden">
+                    <div id="uploadStatusMsg" class="text-center font-bold text-sm mb-4"></div>
+                    
+                    <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Preview 5 Data Teratas:</h4>
+                    <div class="overflow-x-auto border rounded bg-white">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-gray-100 border-b">
+                                <tr>
+                                    <th class="p-2">Nama Barang</th>
+                                    <th class="p-2">Harga ISP</th>
+                                    <th class="p-2">Harga MSRP</th>
+                                    <th class="p-2">Berat</th>
+                                    <th class="p-2">CBM</th>
+                                </tr>
                             </thead>
-                            <tbody id="priceListTableBody"></tbody>
+                            <tbody id="previewBody"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Modal Preview WhatsApp -->
-    <div id="whatsappPreviewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden opacity-0 modal z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg modal-content transform scale-95">
-            <div class="flex justify-between items-center p-5 border-b">
-                <h3 class="text-xl font-semibold">Preview WhatsApp</h3>
-                <button id="closePreviewModalBtn" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+
+    <!-- MODAL WA PREVIEW -->
+    <div id="waModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+            <div class="p-4 border-b flex justify-between items-center">
+                <h3 class="font-bold">Preview Pesanan WhatsApp</h3>
+                <button onclick="toggleModal('waModal', false)" class="text-2xl">&times;</button>
             </div>
-            <div class="p-6">
-                <p class="text-sm text-gray-600 mb-2">Siap di-copy ke WhatsApp:</p>
-                <div id="whatsappPreviewText" class="w-full h-64 p-4 border rounded-md bg-gray-50 overflow-y-auto whitespace-pre-wrap text-sm font-mono text-gray-800"></div>
-                <button id="copyToClipboardBtn" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md shadow hover:bg-green-800 transition">
-                    Copy Teks
-                </button>
-                <span id="copySuccessMsg" class="text-green-600 text-sm mt-2 hidden block text-center font-bold">Teks berhasil di-copy!</span>
+            <div class="p-4">
+                <textarea id="waText" class="w-full h-64 border rounded p-3 text-xs font-mono bg-gray-50 focus:outline-none" readonly></textarea>
+                <div class="grid grid-cols-2 gap-3 mt-4">
+                    <button onclick="copyWA()" class="bg-gray-200 text-gray-800 py-2 rounded text-sm font-bold hover:bg-gray-300">Salin Teks</button>
+                    <button onclick="openWA()" class="bg-green-600 text-white py-2 rounded text-sm font-bold hover:bg-green-700">Buka WhatsApp</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Variabel Global untuk Logic Hapus/Edit
+        const KEYS = { PRICES: 'ehose_prices_v7', LOG: 'ehose_log_v7', CUST: 'ehose_cust_v7' };
         let priceList = [];
-        let specialPrices = {};
         let orderLog = [];
-        const ORDER_LOG_STORAGE_KEY = 'orderFormData_orderLog';
-        const PRICE_LIST_STORAGE_KEY = 'orderFormData_priceList';
-        const CUSTOMER_STORAGE_KEY = 'orderFormData_customer';
-        const SPECIAL_PRICE_STORAGE_KEY = 'orderFormData_specialPrices';
-        const NUM_ROWS = 8;
+        
+        // Initial Rows
+        const INITIAL_ROWS = 15;
 
-        // Expose fungsi ke window agar bisa diakses oleh onclick HTML
-        window.hapusLog = function(id) {
-            if(confirm("Yakin ingin menghapus pesanan ini?")) {
-                orderLog = orderLog.filter(log => log.id !== id);
-                localStorage.setItem(ORDER_LOG_STORAGE_KEY, JSON.stringify(orderLog));
-                renderOrderLog();
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            initTable();
+            renderLog();
+        });
+
+        function loadData() {
+            const defaultData = [{ id: 'def1', name: 'Contoh: FIBER OPTIC ADSS 24 CORE', isp: 20999000, msrp: 23308890, w: 237, cbm: 0.67 }];
+            const savedPrices = localStorage.getItem(KEYS.PRICES);
+            priceList = savedPrices ? JSON.parse(savedPrices) : defaultData;
+            document.getElementById('dbCount').textContent = priceList.length;
+            
+            const savedLog = localStorage.getItem(KEYS.LOG);
+            orderLog = savedLog ? JSON.parse(savedLog) : [];
+
+            if(!document.getElementById('edit-log-id').value) {
+                const c = JSON.parse(localStorage.getItem(KEYS.CUST)) || {};
+                document.getElementById('customerName').value = c.name || '';
+                document.getElementById('keterangan').value = c.keterangan || '';
             }
-        };
+        }
 
-        window.editLog = function(id) {
-            const logToEdit = orderLog.find(log => log.id === id);
-            if (!logToEdit) return;
-            
-            // Isi Form
-            document.getElementById('customerName').value = logToEdit.customerName;
-            document.getElementById('keterangan').value = logToEdit.keterangan;
-            
-            // Reset baris
-            // Kita trigger logic update row manual
-            const orderRowsBody = document.getElementById('order-rows-body');
-            
-            // Reset dulu select dan input
-            const selects = document.querySelectorAll('.item-select');
-            selects.forEach(s => s.value = "");
-            
-            // Isi item
-            logToEdit.items.forEach((item, index) => {
-                if (index < NUM_ROWS) {
-                    const row = document.getElementById(`row-${index}`);
-                    // Cari item di pricelist berdasarkan nama
-                    const foundItem = priceList.find(p => p.name === item.name);
-                    
-                    const itemSelect = row.querySelector('.item-select');
-                    const priceTypeSelect = row.querySelector('.price-type-select');
-                    const qtyInput = row.querySelector('.qty-input');
-                    const priceInput = row.querySelector('.price-input');
-                    const bonusInput = row.querySelector('.bonus-input');
-                    const totalSpan = row.querySelector('.row-total');
+        function initTable() {
+            const tbody = document.getElementById('order-rows-body');
+            tbody.innerHTML = '';
+            for(let i=0; i<INITIAL_ROWS; i++) {
+                addRowHTML(i);
+            }
+            updateDropdowns();
+        }
 
-                    if (foundItem) itemSelect.value = foundItem.id;
-                    
-                    let pTypeVal = 'isp';
-                    if (item.priceType && item.priceType.toLowerCase() === 'msrp') pTypeVal = 'msrp';
-                    if (item.priceType && item.priceType.toLowerCase() === 'special') pTypeVal = 'special';
-                    priceTypeSelect.value = pTypeVal;
+        function addNewRow() {
+            const tbody = document.getElementById('order-rows-body');
+            const newIdx = tbody.children.length;
+            addRowHTML(newIdx);
+            // Hanya update dropdown untuk baris baru agar ringan
+            const row = document.getElementById(`row-${newIdx}`);
+            const select = row.querySelector('.item-select');
+            populateSelect(select);
+        }
 
-                    qtyInput.value = item.qty;
-                    priceInput.value = formatCurrency(item.price);
-                    bonusInput.value = item.bonus || '';
-                    totalSpan.textContent = formatCurrency(item.rowTotal);
-                    
-                    if (pTypeVal === 'special') priceInput.disabled = false;
-                    else priceInput.disabled = true;
-                }
-            });
-            
-            // Update Total
-            let grandTotal = 0;
-            document.querySelectorAll('.row-total').forEach(span => {
-                grandTotal += parseCurrency(span.textContent);
-            });
-            document.getElementById('grand-total').textContent = formatCurrency(grandTotal);
+        function addRowHTML(i) {
+            const tbody = document.getElementById('order-rows-body');
+            const tr = document.createElement('tr');
+            tr.id = `row-${i}`;
+            tr.className = "hover:bg-blue-50 transition";
+            tr.innerHTML = `
+                <td class="col-no text-center text-gray-400 font-mono idx">${i+1}</td>
+                <td class="col-name"><select class="item-select form-select-sm" onchange="updateRow(${i})"><option value="">-- Pilih Barang --</option></select></td>
+                <td class="col-type"><select class="type-select form-select-sm" onchange="updateRow(${i})"><option value="isp">ISP</option><option value="msrp">MSRP</option><option value="special">Special</option></select></td>
+                <td class="col-qty"><input type="number" class="qty-input form-input-sm text-center" placeholder="0" oninput="updateRow(${i})"></td>
+                <td class="col-weight border-l"><span class="val-weight text-gray-600">-</span></td>
+                <td class="col-cbm border-l border-r"><span class="val-cbm text-gray-600">-</span></td>
+                <td class="col-price"><input type="text" class="price-input form-input-sm text-right" disabled placeholder="0" onkeyup="formatInput(this); updateRow(${i})"></td>
+                <td class="col-bonus"><input type="text" class="bonus-input form-input-sm" placeholder="-"></td>
+                <td class="col-total"><span class="val-total block font-bold text-gray-700">0</span></td>
+                <td class="text-center"><button onclick="removeRow(this)" class="text-red-300 hover:text-red-500 text-xs">x</button></td>
+            `;
+            tbody.appendChild(tr);
+        }
 
-            // Set Mode Edit
-            document.getElementById('edit-log-id').value = id;
-            document.getElementById('cancel-edit-btn').classList.remove('hidden');
-            const submitBtn = document.getElementById('submit-order');
-            submitBtn.textContent = "Update Pesanan";
-            submitBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
-            submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            alert("Mode Edit Aktif. Silakan ubah data dan klik Update.");
-        };
-
-        // Helper Formatting
-        function formatCurrency(num) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num); }
-        function parseCurrency(value) { if (typeof value === 'number') return value; const cleaned = String(value).replace(/[^0-9]/g, ''); return parseFloat(cleaned) || 0; }
-        function parsePriceString(value) { if (typeof value === 'number') return Math.round(value); if (!value) return 0; const cleaned = String(value).replace(/[^0-9]/g, ''); return parseInt(cleaned, 10) || 0; }
-
-        // Render Log Function (Global Scope needed for initialization but logic inside)
-        function renderOrderLog() {
-            const orderLogContent = document.getElementById('orderLogContent');
-            const orderLogSection = document.getElementById('orderLogSection');
-            
-            orderLogContent.innerHTML = '';
-            if (orderLog.length === 0) { orderLogSection.classList.add('hidden'); return; }
-            orderLogSection.classList.remove('hidden');
-            
-            [...orderLog].reverse().forEach((log) => { 
-                const logEntry = document.createElement('div');
-                logEntry.classList.add('p-4', 'border', 'border-gray-200', 'rounded-lg', 'bg-gray-50', 'mb-4');
-                
-                let itemsHtml = log.items.map(item => `
-                    <div class="flex justify-between text-sm text-gray-700 border-b border-gray-200 py-1 last:border-0">
-                        <span class="font-medium w-1/2 truncate">${item.name}</span>
-                        <span class="text-gray-500 w-16 text-center">${item.qty}x</span>
-                        <span class="text-gray-500 w-24 text-right">${formatCurrency(item.price)}</span>
-                        <span class="font-bold w-24 text-right text-gray-900">${formatCurrency(item.rowTotal)}</span>
-                    </div>
-                `).join('');
-                
-                // GUNAKAN ONCLICK LANGSUNG DI SINI (METODE PALING STABIL)
-                logEntry.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <p class="font-bold text-blue-800 text-lg">${log.customerName || 'Tanpa Nama'}</p>
-                            <p class="text-xs text-gray-500">${log.timestamp}</p>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button onclick="window.editLog(${log.id})" class="text-xs bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded font-medium shadow">Edit</button>
-                            <button onclick="window.hapusLog(${log.id})" class="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded font-medium shadow">Hapus</button>
-                        </div>
-                    </div>
-                    <div class="bg-white p-2 rounded border border-gray-200 mb-2">${itemsHtml}</div>
-                    <div class="flex justify-between items-center border-t pt-2 mt-2">
-                        <p class="text-xs text-gray-500 italic max-w-xs truncate">${log.keterangan || ''}</p>
-                        <p class="text-lg font-bold text-green-700">Total: ${formatCurrency(log.grandTotal)}</p>
-                    </div>
-                `;
-                orderLogContent.appendChild(logEntry);
+        function removeRow(btn) {
+            const row = btn.closest('tr');
+            row.remove();
+            calcGrandTotal();
+            // Renumber
+            document.querySelectorAll('#order-rows-body tr').forEach((tr, idx) => {
+                tr.querySelector('.idx').textContent = idx + 1;
+                // Note: ID tidak diubah untuk performa, fungsi updateRow pake ID lama gpp
             });
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Data Default
-            const defaultPriceList = [
-                { id: 'def-p1-1', name: 'PRECON /PATCHORD G657A1 1 Core 500 M', price_isp: 360000, price_msrp: 399600 },
-                { id: 'def-p1-2', name: 'PRECON /PATCHORD G657A1 1 Core 300 M', price_isp: 240000, price_msrp: 266400 },
-                { id: 'def-p1-3', name: 'PRECON /PATCHORD G657A1 1 Core 250 M', price_isp: 200000, price_msrp: 222000 },
-                { id: 'def-p1-4', name: 'PRECON /PATCHORD G657A1 1 Core 200 M', price_isp: 184000, price_msrp: 204240 },
-                { id: 'def-p1-5', name: 'PRECON /PATCHORD G657A1 1 Core 150 M', price_isp: 113000, price_msrp: 125430 },
-                { id: 'def-p1-6', name: 'PRECON /PATCHORD G657A1 1 Core 100 M', price_isp: 87000, price_msrp: 96570 },
-                { id: 'def-p1-7', name: 'PRECON /PATCHORD G657A1 1 Core 80 M', price_isp: 69000, price_msrp: 76590 },
-                { id: 'def-p1-8', name: 'PRECON /PATCHORD G657A1 1 Core 50 M', price_isp: 55500, price_msrp: 61605 },
-                { id: 'def-p2-1', name: 'PRECON /PATCHORD G657A2 1 Core 500 M', price_isp: 422500, price_msrp: 468975 },
-                { id: 'def-p2-2', name: 'PRECON /PATCHORD G657A2 1 Core 300 M', price_isp: 277500, price_msrp: 308025 },
-                { id: 'def-p2-3', name: 'PRECON /PATCHORD G657A2 1 Core 250 M', price_isp: 231250, price_msrp: 256688 },
-                { id: 'def-p2-4', name: 'PRECON /PATCHORD G657A2 1 Core 200 M', price_isp: 185000, price_msrp: 205350 },
-                { id: 'def-p2-5', name: 'PRECON /PATCHORD G657A2 1 Core 150 M', price_isp: 131750, price_msrp: 146243 },
-                { id: 'def-p2-6', name: 'PRECON /PATCHORD G657A2 1 Core 100 M', price_isp: 99500, price_msrp: 110445 },
-                { id: 'def-p2-7', name: 'PRECON /PATCHORD G657A2 1 Core 80 M', price_isp: 79000, price_msrp: 87690 },
-                { id: 'def-p2-8', name: 'PRECON /PATCHORD G657A2 1 Core 50 M', price_isp: 61750, price_msrp: 68543 },
-                { id: 'def-f-1', name: 'FIBER OPTIC CABLE ADSS 288 CORE ( 24 TUBE ) 4 KM', price_isp: 150000000, price_msrp: 166500000 },
-                { id: 'def-f-2', name: 'FIBER OPTIC CABLE ADSS 144 CORE ( 12 TUBE ) 4 KM', price_isp: 75000000, price_msrp: 83250000 },
-                { id: 'def-f-3', name: 'FIBER OPTIC CABLE ADSS 96 CORE ( 8 TUBE ) 4 KM', price_isp: 49900000, price_msrp: 55389000 },
-                { id: 'def-f-4', name: 'FIBER OPTIC CABLE ADSS 96 CORE ( 8 TUBE ) 2 KM', price_isp: 25700000, price_msrp: 28527000 },
-                { id: 'def-f-5', name: 'FIBER OPTIC CABLE ADSS 48 CORE ( 4 TUBE ) 4 KM', price_isp: 29990000, price_msrp: 33288900 },
-                { id: 'def-f-6', name: 'FIBER OPTIC CABLE ADSS 48 CORE ( 4 TUBE ) 2 KM', price_isp: 15745000, price_msrp: 17476950 },
-                { id: 'def-f-7', name: 'FIBER OPTIC CABLE ADSS 24 CORE ( 4 TUBE ) 4 KM', price_isp: 20999000, price_msrp: 23308890 },
-                { id: 'def-f-8', name: 'FIBER OPTIC CABLE ADSS 24 CORE ( 4 TUBE ) 2 KM', price_isp: 10999000, price_msrp: 12208890 },
-                { id: 'def-f-9', name: 'FIBER OPTIC CABLE ADSS 12 CORE ( 2 TUBE ) 4 KM', price_isp: 14900000, price_msrp: 16539000 },
-                { id: 'def-f-10', name: 'FIBER OPTIC CABLE ADSS 12 CORE ( 2 TUBE ) 2 KM', price_isp: 7850000, price_msrp: 8713500 },
-                { id: 'def-f-11', name: 'FIBER OPTIC CABLE FIG 8 ( 2 SELING ) 12 CORE', price_isp: 4900, price_msrp: 5439 },
-                { id: 'def-f-12', name: 'FIBER OPTIC CABLE FIG 8 ( 2 SELING ) 24 CORE', price_isp: 6500, price_msrp: 7215 },
-                { id: 'def-f-13', name: 'FIBER OPTIC CABLE FIG 8 ( 2 SELING ) 48 CORE', price_isp: 8900, price_msrp: 9879 },
-                { id: 'def-f-14', name: 'FAST CONNECTOR SC/UPC', price_isp: 3500, price_msrp: 3885 },
-                { id: 'def-f-15', name: 'PIGTAIL SC/UPC', price_isp: 3500, price_msrp: 3885 },
-                { id: 'def-f-16', name: 'PATCHORD SC/UPC 1 METER', price_isp: 11000, price_msrp: 12210 },
-                { id: 'def-f-17', name: 'PATCHORD SC/UPC 3 METER', price_isp: 13000, price_msrp: 14430 },
-                { id: 'def-f-18', name: 'PATCHORD SC/UPC 5 METER', price_isp: 15000, price_msrp: 16650 },
-                { id: 'def-f-19', name: 'PATCHORD SC/UPC 10 METER', price_isp: 18000, price_msrp: 19980 },
-                { id: 'def-f-20', name: 'PATCHORD SC/UPC 20 METER', price_isp: 25000, price_msrp: 27750 },
-                { id: 'def-f-21', name: 'ADAPTOR SC/UPC', price_isp: 2500, price_msrp: 2775 },
-                { id: 'def-f-22', name: 'DOME FIBER OPTIC JOINT CLOSURE 48 CORES', price_isp: 350000, price_msrp: 388500 },
-                { id: 'def-f-23', name: 'DOME FIBER OPTIC JOINT CLOSURE 96 CORES', price_isp: 450000, price_msrp: 499500 },
-                { id: 'def-f-24', name: 'HORIZONTAL FIBER OPTIC JOINT CLOSURE 12 CORES', price_isp: 135000, price_msrp: 149850 },
-                { id: 'def-f-25', name: 'HORIZONTAL FIBER OPTIC JOINT CLOSURE 24 CORES', price_isp: 145000, price_msrp: 160950 },
-                { id: 'def-f-26', name: 'Mini PLC splitter 1*16 SC/UPC', price_isp: 93000, price_msrp: 103230 },
-                { id: 'def-f-27', name: 'Mini PLC splitter 1*8 SC/UPC', price_isp: 49000, price_msrp: 54390 },
-                { id: 'def-f-28', name: 'Mini PLC splitter 1*4 SC/UPC', price_isp: 39000, price_msrp: 43290 },
-                { id: 'def-f-29', name: 'OPTIC DISTRIBUTION BOX 8 CORES with 1*8 cassette PLC splitter', price_isp: 125000, price_msrp: 138750 },
-                { id: 'def-f-30', name: 'OPTIC DISTRIBUTION BOX 16 CORES with 1*16 cassette PLC splitter', price_isp: 225000, price_msrp: 249750 },
-                { id: 'def-f-31', name: 'OPTIC DISTRIBUTION BOX 32 CORES with 1*16 cassette PLC splitter', price_isp: 270000, price_msrp: 299700 },
-                { id: 'def-f-32', name: 'OPTICAL DISTRIBUTION FRAME (ODF) 48 CORES...', price_isp: 799000, price_msrp: 886890 },
-                { id: 'def-f-33', name: 'OPTICAL DISRIBUTION FRAME (ODF) 96 CORES...', price_isp: 1275000, price_msrp: 1415250 },
-                { id: 'def-f-34', name: 'DEAD END 16- 25MM Lengkap beserta Kupingan', price_isp: 16000, price_msrp: 17760 },
-                { id: 'def-f-35', name: 'DEAD END 25- 50MM Lengkap beserta Kupingan', price_isp: 17000, price_msrp: 18870 },
-                { id: 'def-f-36', name: 'DEAD END STRAIN Plastik Lengkap beserta Kupingan', price_isp: 9900, price_msrp: 10989 },
-                { id: 'def-f-37', name: 'PRPRECON /PATCHORD G657A1 2 CORE100M', price_isp: 160000, price_msrp: 177600 },
-                { id: 'def-f-38', name: 'PRPRECON /PATCHORD G657A1 2 CORE150M', price_isp: 210000, price_msrp: 233100 },
-                { id: 'def-f-39', name: 'PRPRECON /PATCHORD G657A1 2 CORE200M', price_isp: 260000, price_msrp: 288600 },
-                { id: 'def-f-40', name: 'PRPRECON /PATCHORD G657A1 2 CORE300M', price_isp: 390000, price_msrp: 432900 },
-                { id: 'def-f-41', name: 'PRPRECON /PATCHORD G657A1 2 CORE50M', price_isp: 99000, price_msrp: 109890 },
-                { id: 'def-f-42', name: 'PRPRECON /PATCHORD G657A2 2 CORE100M', price_isp: 172500, price_msrp: 191475 },
-                { id: 'def-f-43', name: 'PRPRECON /PATCHORD G657A2 2 CORE150M', price_isp: 228750, price_msrp: 253913 },
-                { id: 'def-f-44', name: 'PRPRECON /PATCHORD G657A2 2 CORE200M', price_isp: 285000, price_msrp: 316350 },
-                { id: 'def-f-45', name: 'PRPRECON /PATCHORD G657A2 2 CORE300M', price_isp: 427500, price_msrp: 474525 },
-                { id: 'def-f-46', name: 'PRPRECON /PATCHORD G657A2 2 CORE50M', price_isp: 105250, price_msrp: 116828 },
-                { id: 'def-f-47', name: 'SUSPENSION CORONG untuk kabel bulat 1-288 core', price_isp: 16000, price_msrp: 17760 },
-                { id: 'def-f-48', name: 'TOTOLINK G1200SE DUAL BAND', price_isp: 350000, price_msrp: 390000 },
-                { id: 'def-f-49', name: 'TOTOLINK G300L SINGLE BAND', price_isp: 190000, price_msrp: 225000 }
-            ];
+        function updateDropdowns() {
+            // Sort data sekali saja
+            priceList.sort((a,b) => a.name.localeCompare(b.name));
+            // Gunakan DocumentFragment untuk performa jika data ribuan
+            document.querySelectorAll('.item-select').forEach(select => {
+                populateSelect(select);
+            });
+        }
 
-            // DOM Elements
-            const customerInputs = { name: document.getElementById('customerName'), keterangan: document.getElementById('keterangan') };
-            const orderRowsBody = document.getElementById('order-rows-body');
-            const grandTotalEl = document.getElementById('grand-total');
-            const submitOrderBtn = document.getElementById('submit-order');
-            const resetFormBtn = document.getElementById('reset-form');
-            const orderLogSection = document.getElementById('orderLogSection');
-            const orderLogContent = document.getElementById('orderLogContent');
-            const cancelEditBtn = document.getElementById('cancel-edit-btn');
-            const editLogIdInput = document.getElementById('edit-log-id');
-            
-            // Modal Elements
-            const modal = document.getElementById('priceListModal');
-            const closeModalBtn = document.getElementById('closeModalBtn');
-            const openPriceListModalBtn = document.getElementById('openPriceListModalBtn');
-            const csvFileInput = document.getElementById('csvFileInput');
-            const fileNameDisplay = document.getElementById('fileNameDisplay');
-            const uploadStatus = document.getElementById('uploadStatus');
-            const priceListTableBody = document.getElementById('priceListTableBody');
-            
-            // WA Preview
-            const previewModal = document.getElementById('whatsappPreviewModal');
-            const closePreviewModalBtn = document.getElementById('closePreviewModalBtn');
-            const whatsappPreviewText = document.getElementById('whatsappPreviewText');
-            const copyToClipboardBtn = document.getElementById('copyToClipboardBtn');
-            const copySuccessMsg = document.getElementById('copySuccessMsg');
+        function populateSelect(select) {
+            const currentVal = select.value;
+            let html = `<option value="">-- Pilih Barang --</option>`;
+            // Optimasi: render string besar lebih cepat daripada DOM append loop
+            html += priceList.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            select.innerHTML = html;
+            select.value = currentVal;
+        }
 
-            // Load Data
-            function loadData() {
-                const storedPriceList = localStorage.getItem(PRICE_LIST_STORAGE_KEY);
-                priceList = (storedPriceList && JSON.parse(storedPriceList).length > 2) ? JSON.parse(storedPriceList) : defaultPriceList;
-                priceList.sort((a, b) => a.name.localeCompare(b.name));
+        function updateRow(idx) {
+            const row = document.getElementById(`row-${idx}`);
+            if(!row) return; // Baris mungkin sudah dihapus
+            
+            const itemId = row.querySelector('.item-select').value;
+            const type = row.querySelector('.type-select').value;
+            const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+            const priceInput = row.querySelector('.price-input');
+            
+            let price = 0, w = 0, cbm = 0;
+
+            if(itemId) {
+                const item = priceList.find(p => p.id == itemId);
+                if(item) {
+                    w = item.w || 0; cbm = item.cbm || 0;
+                    if(type === 'special') {
+                        priceInput.disabled = false;
+                        price = parseNumber(priceInput.value);
+                    } else {
+                        priceInput.disabled = true;
+                        price = (type === 'msrp') ? item.msrp : item.isp;
+                        if(document.activeElement !== priceInput) priceInput.value = formatRupiah(price);
+                    }
+                }
+            } else {
+                priceInput.value = ''; priceInput.disabled = true;
+            }
+
+            const total = price * qty;
+            const totalW = w * qty;
+            const totalCBM = cbm * qty;
+
+            row.querySelector('.val-total').textContent = formatRupiah(total);
+            row.querySelector('.val-weight').textContent = totalW > 0 ? totalW.toFixed(2) : '-';
+            row.querySelector('.val-cbm').textContent = totalCBM > 0 ? totalCBM.toFixed(4) : '-';
+
+            calcGrandTotal();
+        }
+
+        function calcGrandTotal() {
+            let gt = 0, tw = 0, tc = 0;
+            document.querySelectorAll('#order-rows-body tr').forEach(row => {
+                gt += parseNumber(row.querySelector('.val-total').textContent);
+                const w = parseFloat(row.querySelector('.val-weight').textContent);
+                if(!isNaN(w)) tw += w;
+                const c = parseFloat(row.querySelector('.val-cbm').textContent);
+                if(!isNaN(c)) tc += c;
+            });
+            document.getElementById('grand-total').textContent = formatRupiah(gt);
+            document.getElementById('total-weight').textContent = tw > 0 ? tw.toFixed(2) + " kg" : "0";
+            document.getElementById('total-cbm').textContent = tc > 0 ? tc.toFixed(4) + " m³" : "0";
+        }
+
+        // --- UPLOAD LOGIC (SHEET JS) ---
+        function handleFileUpload(input) {
+            const file = input.files[0];
+            if(!file) return;
+            
+            document.getElementById('fileNameDisplay').textContent = file.name;
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                try {
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // Convert to JSON array (array of arrays)
+                    const rows = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                    processData(rows);
+                } catch(err) {
+                    alert("Error membaca file Excel: " + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processData(rows) {
+            let newItems = [];
+            let success = 0;
+            
+            // Scanner Column Index
+            // Kita cari baris Header dulu untuk tau index kolom
+            let colIdx = { name: -1, isp: -1, msrp: -1, weight: -1, cbm: -1 };
+            let startRow = 0;
+
+            // Scanning Header (Mencoba menebak baris header)
+            for(let i=0; i<Math.min(rows.length, 10); i++) {
+                const row = rows[i].map(c => String(c).toUpperCase().trim());
                 
-                specialPrices = JSON.parse(localStorage.getItem(SPECIAL_PRICE_STORAGE_KEY)) || {};
-                orderLog = JSON.parse(localStorage.getItem(ORDER_LOG_STORAGE_KEY)) || [];
+                // Cari kata kunci
+                // File Baru: "NAMA BARANG", "ISP", "MSRP", "BERAT", "CBM"
+                // File Lama: "HARGA", "ISP"
                 
-                // Load customer data only if NOT in edit mode
-                if (!editLogIdInput.value) {
-                    const custData = JSON.parse(localStorage.getItem(CUSTOMER_STORAGE_KEY)) || {};
-                    customerInputs.name.value = custData.name || '';
-                    customerInputs.keterangan.value = custData.keterangan || '';
+                if(row.includes("ISP") || row.includes("MSRP")) {
+                    colIdx.name = 0; // Default asumsi nama di kolom A
+                    
+                    // Scan kolom
+                    row.forEach((cell, idx) => {
+                        if(cell.includes("BARANG") || cell.includes("ITEM")) colIdx.name = idx;
+                        else if(cell === "ISP") colIdx.isp = idx;
+                        else if(cell === "MSRP") colIdx.msrp = idx;
+                        else if(cell.includes("BERAT") || cell.includes("WEIGHT")) colIdx.weight = idx;
+                        else if(cell === "CBM" || cell.includes("DIMENSI")) colIdx.cbm = idx;
+                    });
+                    
+                    // Fallback logika manual jika header tidak standard
+                    // File Baru (XLS): A(0)=Nama, B(1)=ISP, C(2)=MSRP, E(4)=Berat, G(6)=CBM
+                    if(colIdx.isp === -1 && row[1] === "ISP") { // Struktur XLS Baru
+                        colIdx = { name: 0, isp: 1, msrp: 2, weight: 4, cbm: 6 };
+                    }
+                    // File Lama (XLSX): A(0)=Nama, D(3)=ISP, F(5)=MSRP, H(7)=Berat, J(9)=CBM
+                    if(colIdx.isp === -1 && row[3] === "ISP") { // Struktur XLSX Lama
+                        colIdx = { name: 0, isp: 3, msrp: 5, weight: 7, cbm: 9 };
+                    }
+                    
+                    startRow = i + 1;
+                    break;
                 }
             }
 
-            function updateRow(rowId) {
-                const row = document.getElementById(`row-${rowId}`);
-                const itemSelect = row.querySelector('.item-select');
-                const priceTypeSelect = row.querySelector('.price-type-select');
-                const qtyInput = row.querySelector('.qty-input');
-                const priceInput = row.querySelector('.price-input');
-                const totalSpan = row.querySelector('.row-total');
-
-                const selectedItemId = itemSelect.value;
-                const priceType = priceTypeSelect.value;
-                const qty = parseFloat(qtyInput.value) || 0;
-                
-                let price = 0;
-                
-                if (selectedItemId) {
-                    const item = priceList.find(p => p.id === selectedItemId);
-                    if (item) {
-                        if (priceType === 'isp') {
-                            price = item.price_isp;
-                            priceInput.value = formatCurrency(price);
-                            priceInput.disabled = true;
-                        } else if (priceType === 'msrp') {
-                            price = item.price_msrp;
-                            priceInput.value = formatCurrency(price);
-                            priceInput.disabled = true;
-                        } else { // Special
-                            priceInput.disabled = false;
-                            // Saat user mengetik, value input adalah sumber kebenaran
-                            // Jika input masih format uang, parse dulu
-                            let val = parseCurrency(priceInput.value);
-                            price = val;
-                        }
-                    }
-                } else {
-                    priceInput.value = "";
-                    priceInput.disabled = true;
+            // Jika Gagal Auto-Detect Header, Pakai Default Mapping XLS Baru
+            if(colIdx.isp === -1) {
+                // Cek data baris ke-2 (index 1), apakah kolom 1 (B) adalah angka harga?
+                if(rows.length > 1 && !isNaN(cleanNumber(rows[1][1]))) {
+                     colIdx = { name: 0, isp: 1, msrp: 2, weight: 4, cbm: 6 };
+                     startRow = 0;
                 }
-                
-                // Recalculate total based on current price input (for Special) or fixed price
-                const rowTotal = qty * price;
-                totalSpan.textContent = formatCurrency(rowTotal);
-                updateGrandTotal();
             }
 
-            function updateGrandTotal() {
-                let grandTotal = 0;
-                document.querySelectorAll('.row-total').forEach(span => {
-                    grandTotal += parseCurrency(span.textContent);
-                });
-                grandTotalEl.textContent = formatCurrency(grandTotal);
-            }
+            // Process Rows
+            for(let i=startRow; i<rows.length; i++) {
+                const row = rows[i];
+                if(!row || row.length < 2) continue;
 
-            function createOrderRows() {
-                orderRowsBody.innerHTML = '';
-                for(let i=0; i<NUM_ROWS; i++) {
-                    const tr = document.createElement('tr');
-                    tr.id = `row-${i}`;
-                    tr.className = 'border-b hover:bg-gray-50';
-                    tr.innerHTML = `
-                        <td class="col-no text-center text-gray-500">${i+1}</td>
-                        <td class="col-name"><select data-id="${i}" name="item" class="item-select form-select-sm"></select></td>
-                        <td class="col-type"><select data-id="${i}" name="priceType" class="price-type-select form-select-sm"><option value="isp">ISP</option><option value="msrp">MSRP</option><option value="special">Special</option></select></td>
-                        <td class="col-qty text-center"><input data-id="${i}" name="qty" type="number" min="0" class="qty-input form-input-sm text-center" value=""></td>
-                        <td class="col-price"><input data-id="${i}" name="price" type="text" class="price-input form-input-sm text-right" value="" placeholder="0"></td>
-                        <td class="col-bonus"><input data-id="${i}" name="bonus" type="text" class="bonus-input form-input-sm" placeholder="-"></td>
-                        <td class="col-total"><span class="row-total font-medium block text-right pr-2">Rp 0</span></td>
-                    `;
-                    orderRowsBody.appendChild(tr);
+                const name = String(row[colIdx.name] || "").trim();
+                // Skip header/empty
+                if(!name || name.includes("NAMA BARANG") || name.startsWith("#")) continue;
+
+                const isp = cleanNumber(row[colIdx.isp]);
+                const msrp = cleanNumber(row[colIdx.msrp]);
+                const w = cleanDecimal(row[colIdx.weight]);
+                const cbm = cleanDecimal(row[colIdx.cbm]);
+
+                if(isp > 0 || msrp > 0) {
+                    newItems.push({
+                        id: `id_${Date.now()}_${i}`,
+                        name: name,
+                        isp: isp,
+                        msrp: msrp || isp,
+                        w: w,
+                        cbm: cbm
+                    });
+                    success++;
                 }
-                updateAllDropdowns();
             }
 
-            function updateAllDropdowns() {
-                const optionsHtml = priceList.map(item => `<option value="${item.id}">${item.name}</option>`).join('');
-                document.querySelectorAll('.item-select').forEach(select => {
-                    const val = select.value;
-                    select.innerHTML = `<option value="">-- Pilih Barang --</option>${optionsHtml}`;
-                    select.value = val;
-                });
-            }
-
-            // --- Event Listeners ---
-            function setupEventListeners() {
-                // Row Changes
-                orderRowsBody.addEventListener('change', (e) => {
-                    if(e.target.matches('.item-select, .price-type-select, .qty-input')) {
-                        updateRow(e.target.dataset.id);
-                    }
-                });
-                // Price Input (Manual/Special)
-                orderRowsBody.addEventListener('keyup', (e) => {
-                    if(e.target.matches('.price-input')) {
-                        updateRow(e.target.dataset.id);
-                    }
-                });
-                
-                // Submit
-                submitOrderBtn.addEventListener('click', handleSubmit);
-                
-                // Reset / Cancel Edit
-                resetFormBtn.addEventListener('click', () => {
-                    if(confirm("Reset formulir?")) {
-                        if(editLogIdInput.value) cancelEditMode();
-                        else {
-                            createOrderRows();
-                            updateGrandTotal();
-                            customerInputs.name.value = '';
-                            customerInputs.keterangan.value = '';
-                            localStorage.setItem(CUSTOMER_STORAGE_KEY, JSON.stringify({name:'', keterangan:''}));
-                        }
-                    }
-                });
-                
-                cancelEditBtn.addEventListener('click', cancelEditMode);
-                
-                // Customer Data Save
-                customerInputs.name.addEventListener('blur', () => { if(!editLogIdInput.value) saveCustomerData(); });
-                customerInputs.keterangan.addEventListener('blur', () => { if(!editLogIdInput.value) saveCustomerData(); });
-                
-                // Modal
-                openPriceListModalBtn.addEventListener('click', () => {
-                    modal.classList.remove('hidden'); setTimeout(() => modal.classList.remove('opacity-0'), 10);
-                    renderPriceListTableInModal();
-                });
-                closeModalBtn.addEventListener('click', () => { modal.classList.add('opacity-0'); setTimeout(() => modal.classList.add('hidden'), 300); });
-                csvFileInput.addEventListener('change', handleCsvUpload);
-                
-                // Preview WA
-                closePreviewModalBtn.addEventListener('click', () => { previewModal.classList.add('opacity-0'); setTimeout(() => previewModal.classList.add('hidden'), 300); });
-                copyToClipboardBtn.addEventListener('click', () => {
-                    const tempTextArea = document.createElement('textarea');
-                    tempTextArea.value = whatsappPreviewText.innerText;
-                    document.body.appendChild(tempTextArea);
-                    tempTextArea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(tempTextArea);
-                    copySuccessMsg.classList.remove('hidden');
-                    setTimeout(() => copySuccessMsg.classList.add('hidden'), 2000);
-                });
-            }
+            const statusMsg = document.getElementById('uploadStatusMsg');
+            const preview = document.getElementById('uploadResult');
             
-            function saveCustomerData() {
-                const data = { name: customerInputs.name.value, keterangan: customerInputs.keterangan.value };
-                localStorage.setItem(CUSTOMER_STORAGE_KEY, JSON.stringify(data));
-            }
-
-            function handleSubmit() {
-                const now = new Date();
-                const timestampStr = now.toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(/\./g, '.');
+            if (success > 0) {
+                priceList = newItems;
+                localStorage.setItem(KEYS.PRICES, JSON.stringify(priceList));
+                document.getElementById('dbCount').textContent = priceList.length;
                 
-                const orderData = {
-                    id: editLogIdInput.value ? parseInt(editLogIdInput.value) : Date.now(),
-                    customerName: customerInputs.name.value,
-                    keterangan: customerInputs.keterangan.value,
-                    timestamp: timestampStr,
-                    items: [],
-                    grandTotal: 0
-                };
-
-                let waText = `*ORDER*\n*Tanggal:* ${orderData.timestamp}\n*Customer:* ${orderData.customerName || '-'}\n\n--------------------------------------\n*Detail Pesanan:*\n\n`;
-                let hasItems = false;
-
-                for(let i=0; i<NUM_ROWS; i++) {
-                    const row = document.getElementById(`row-${i}`);
-                    const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-                    if(qty > 0) {
-                        hasItems = true;
-                        const itemSelect = row.querySelector('.item-select');
-                        const priceTypeSelect = row.querySelector('.price-type-select');
-                        const item = priceList.find(p => p.id === itemSelect.value);
-                        const price = parseCurrency(row.querySelector('.price-input').value);
-                        const bonus = row.querySelector('.bonus-input').value.trim();
-                        const rowTotal = qty * price;
-                        
-                        let pType = priceTypeSelect.options[priceTypeSelect.selectedIndex].text;
-                        if(pType.toLowerCase() === 'special') pType = 'Special';
-
-                        const itemData = {
-                            name: item ? item.name : 'Unknown',
-                            priceType: pType,
-                            qty: qty,
-                            price: price,
-                            bonus: bonus,
-                            rowTotal: rowTotal
-                        };
-                        orderData.items.push(itemData);
-                        
-                        waText += `*${itemData.name}*\n${itemData.qty} pcs @ ${formatCurrency(itemData.price)} (${itemData.priceType})\n${itemData.bonus ? `Bonus: ${itemData.bonus}\n` : ''}Total: ${formatCurrency(itemData.rowTotal)}\n\n`;
-                    }
-                }
-
-                if(!hasItems) { alert("Isi minimal satu barang."); return; }
-
-                const grandTotal = parseCurrency(grandTotalEl.textContent);
-                orderData.grandTotal = grandTotal;
-                waText += `--------------------------------------\n*GRAND TOTAL: ${formatCurrency(grandTotal)}*\n\n*Keterangan:* \n${orderData.keterangan || '-'}\n`;
-
-                if(editLogIdInput.value) {
-                    const index = orderLog.findIndex(l => l.id === orderData.id);
-                    if(index !== -1) orderLog[index] = orderData;
-                    cancelEditMode();
-                } else {
-                    orderLog.push(orderData);
-                    saveCustomerData();
-                }
-                
-                localStorage.setItem(ORDER_LOG_STORAGE_KEY, JSON.stringify(orderLog));
-                renderOrderLog();
-                
-                whatsappPreviewText.innerText = waText;
-                previewModal.classList.remove('hidden'); setTimeout(() => previewModal.classList.remove('opacity-0'), 10);
-            }
-
-            function cancelEditMode() {
-                editLogIdInput.value = '';
-                cancelEditBtn.classList.add('hidden');
-                submitOrderBtn.textContent = "Submit / Simpan";
-                submitOrderBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-                submitOrderBtn.classList.add('bg-green-600', 'hover:bg-green-700');
-                createOrderRows(); // Reset form to blank
-                updateGrandTotal();
-                customerInputs.name.value = '';
-                customerInputs.keterangan.value = '';
-            }
-            
-            function handleCsvUpload(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                fileNameDisplay.textContent = `File: ${file.name}`;
-                uploadStatus.textContent = 'Memproses...';
-                uploadStatus.classList.remove('hidden', 'text-red-600', 'text-green-600');
-                
-                Papa.parse(file, {
-                    header: false, skipEmptyLines: true,
-                    complete: (results) => {
-                        let newPriceList = [];
-                        let count = 0;
-                        results.data.forEach(row => {
-                            if(row.length >= 3) {
-                                const name = String(row[0]).trim();
-                                const isp = parsePriceString(row[1]);
-                                const msrp = parsePriceString(row[2]);
-                                if(name && name.length > 2 && isp > 0 && msrp > 0) {
-                                    newPriceList.push({ id: `item-${Date.now()}-${count++}`, name: name, price_isp: isp, price_msrp: msrp });
-                                }
-                            }
-                        });
-                        
-                        if(newPriceList.length === 0) {
-                            uploadStatus.textContent = 'Gagal. Cek format CSV.';
-                            uploadStatus.classList.add('text-red-600');
-                        } else {
-                            priceList = newPriceList;
-                            priceList.sort((a, b) => a.name.localeCompare(b.name));
-                            localStorage.setItem(PRICE_LIST_STORAGE_KEY, JSON.stringify(priceList));
-                            updateAllDropdowns();
-                            renderPriceListTableInModal();
-                            uploadStatus.textContent = `Sukses! ${newPriceList.length} barang.`;
-                            uploadStatus.classList.add('text-green-600');
-                        }
-                    }
-                });
-            }
-            
-            function renderPriceListTableInModal() {
-                const tbody = document.getElementById('priceListTableBody');
+                // Render Preview
+                const tbody = document.getElementById('previewBody');
                 tbody.innerHTML = '';
-                priceList.forEach(item => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'border-b';
-                    tr.innerHTML = `<td class="p-2">${item.name}</td><td class="p-2">${formatCurrency(item.price_isp)}</td><td class="p-2">${formatCurrency(item.price_msrp)}</td>`;
-                    tbody.appendChild(tr);
+                newItems.slice(0, 5).forEach(item => {
+                    tbody.innerHTML += `<tr class="border-b"><td class="p-2 truncate max-w-[150px]">${item.name}</td><td class="p-2">${formatRupiah(item.isp)}</td><td class="p-2">${formatRupiah(item.msrp)}</td><td class="p-2">${item.w}</td><td class="p-2">${item.cbm}</td></tr>`;
                 });
+                
+                preview.classList.remove('hidden');
+                statusMsg.textContent = `SUKSES! Berhasil membaca ${success} produk.`;
+                statusMsg.className = "text-center font-bold text-sm mb-4 text-green-600";
+                
+                // Refresh Form
+                updateDropdowns();
+            } else {
+                preview.classList.remove('hidden');
+                statusMsg.textContent = "GAGAL: Tidak ada data harga yang terbaca. Pastikan format kolom benar.";
+                statusMsg.className = "text-center font-bold text-sm mb-4 text-red-600";
             }
+        }
 
-            // Init
-            loadData();
-            createOrderRows();
-            setupEventListeners();
-            updateAllDropdowns();
-            renderOrderLog(); // Render log on startup
-        });
+        // --- SUBMIT ---
+        function submitOrder() {
+            let items = [];
+            const rows = document.querySelectorAll('#order-rows-body tr');
+            
+            rows.forEach(row => {
+                const qty = parseFloat(row.querySelector('.qty-input').value);
+                if(qty > 0) {
+                    const sel = row.querySelector('.item-select');
+                    const name = sel.options[sel.selectedIndex].text;
+                    const price = row.querySelector('.price-input').value;
+                    const total = row.querySelector('.val-total').textContent;
+                    const type = row.querySelector('.type-select').value.toUpperCase();
+                    const w = row.querySelector('.val-weight').textContent;
+                    const cbm = row.querySelector('.val-cbm').textContent;
+                    const bonus = row.querySelector('.bonus-input').value;
+                    items.push({ name, qty, price, total, type, w, cbm, bonus });
+                }
+            });
+
+            if(items.length === 0) { alert("Isi pesanan dulu!"); return; }
+
+            const cName = document.getElementById('customerName').value;
+            const cKet = document.getElementById('keterangan').value;
+            const gTotal = document.getElementById('grand-total').textContent;
+            const tWeight = document.getElementById('total-weight').textContent;
+            const tCbm = document.getElementById('total-cbm').textContent;
+            const date = new Date().toLocaleString('id-ID');
+
+            let txt = `*ORDER BARU*\n📅 ${date}\n👤 ${cName}\n📝 ${cKet}\n\n*DETAIL BARANG:*\n`;
+            items.forEach(i => {
+                txt += `----------------\n*${i.name}*\n${i.qty} x ${i.price} (${i.type})\nSub: *${i.total}*\n`;
+                if(i.w !== '-') txt += `(Est: ${i.w}, ${i.cbm})\n`;
+                if(i.bonus) txt += `🎁 Bonus: ${i.bonus}\n`;
+            });
+            txt += `================\n*TOTAL: ${gTotal}*\n📦 Berat: ${tWeight} | Vol: ${tCbm}`;
+
+            document.getElementById('waText').value = txt;
+            toggleModal('waModal', true);
+
+            orderLog.unshift({ id: Date.now(), date, name: cName, total: gTotal, itemsCount: items.length });
+            localStorage.setItem(KEYS.LOG, JSON.stringify(orderLog));
+            localStorage.setItem(KEYS.CUST, JSON.stringify({name:cName, keterangan:cKet}));
+            renderLog();
+        }
+
+        // --- HELPER ---
+        function cleanNumber(val) {
+            if(!val) return 0;
+            if(typeof val === 'number') return val;
+            return parseInt(val.replace(/\D/g, ''), 10) || 0;
+        }
+        function cleanDecimal(val) {
+            if(!val) return 0;
+            if(typeof val === 'number') return val;
+            let s = String(val).toLowerCase().replace('kg','').replace('m3','').trim();
+            s = s.replace(',', '.');
+            let m = s.match(/[\d\.]+/);
+            return m ? parseFloat(m[0]) : 0;
+        }
+        function formatRupiah(n) { return new Intl.NumberFormat('id-ID', {style:'currency', currency:'IDR', minimumFractionDigits:0}).format(n); }
+        function parseNumber(str) { if(!str) return 0; return parseInt(str.replace(/\D/g, ''), 10) || 0; }
+        function formatInput(el) { let val = parseNumber(el.value); el.value = formatRupiah(val); }
+        function toggleModal(id, show) { const el = document.getElementById(id); if(show) { el.classList.remove('hidden'); } else { el.classList.add('hidden'); } }
+        function copyWA() { const txt = document.getElementById('waText'); txt.select(); document.execCommand('copy'); alert("Teks berhasil disalin!"); }
+        function openWA() { const txt = document.getElementById('waText').value; window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank'); }
+        function resetAll() { if(confirm("Reset form?")) { document.getElementById('customerName').value = ''; document.getElementById('keterangan').value = ''; initTable(); calcGrandTotal(); } }
+        function renderLog() {
+            const div = document.getElementById('orderLogContent');
+            const section = document.getElementById('orderLogSection');
+            if(orderLog.length === 0) { section.classList.add('hidden'); return; }
+            section.classList.remove('hidden');
+            div.innerHTML = orderLog.map(l => `<div class="flex justify-between items-center p-3 bg-gray-50 rounded border text-xs"><div><div class="font-bold text-gray-700">${l.name || 'No Name'}</div><div class="text-gray-400">${l.date} • ${l.itemsCount} item</div></div><div class="font-bold text-blue-600">${l.total}</div></div>`).join('');
+        }
     </script>
 </body>
 </html>

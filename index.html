@@ -3,70 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulir Data Order (Support Excel XLS/XLSX)</title>
+    <title>Formulir Data Order v8 - Full History Support</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS: Library Sakti untuk baca Excel langsung -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .modal { transition: opacity 0.3s ease; }
         input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        
-        /* --- LAYOUT TABEL RESPONSIF & COMPACT --- */
         table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        
-        /* Sticky Header */
-        th { 
-            position: sticky; top: 0; z-index: 10; 
-            background: #f3f4f6; 
-            font-size: 0.75rem; /* Font header lebih kecil */
-            font-weight: 700;
-            color: #374151;
-            padding: 8px 4px;
-            white-space: nowrap; /* Header tidak turun baris */
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-        
-        /* Cell Styles */
-        td { 
-            padding: 4px 2px; 
-            vertical-align: middle; 
-            border-bottom: 1px solid #e5e7eb; 
-        }
-
-        /* Lebar Kolom Dioptimalkan untuk HP */
+        th { position: sticky; top: 0; z-index: 10; background: #f3f4f6; font-size: 0.75rem; font-weight: 700; color: #374151; padding: 8px 4px; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        td { padding: 4px 2px; vertical-align: middle; border-bottom: 1px solid #e5e7eb; }
         .col-no { width: 25px; text-align: center; }
-        .col-name { 
-            min-width: 140px; /* Jauh lebih kecil dari 250px sebelumnya */
-            max-width: 220px; /* Batas maksimal agar tidak terlalu lebar */
-        } 
+        .col-name { min-width: 140px; max-width: 220px; } 
         .col-type { width: 75px; }
         .col-qty { width: 50px; }
-        .col-weight { width: 60px; text-align: center; background-color: #f9fafb; font-size: 0.7rem; color: #6b7280; }
-        .col-cbm { width: 60px; text-align: center; background-color: #f9fafb; font-size: 0.7rem; color: #6b7280; }
+        .col-weight, .col-cbm { width: 60px; text-align: center; background-color: #f9fafb; font-size: 0.7rem; color: #6b7280; }
         .col-price { width: 100px; }
         .col-bonus { width: 80px; }
         .col-total { width: 110px; text-align: right; }
-        
-        /* Input Styles */
-        .form-input-sm { 
-            @apply w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white; 
-            min-height: 30px; /* Tinggi input pas untuk jari */
-        }
-        .form-select-sm { 
-            @apply w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white; 
-            min-height: 30px;
-            text-overflow: ellipsis; /* Teks panjang dipotong ... */
-        }
-
-        /* KHUSUS TAMPILAN HP (Mobile) */
-        @media (max-width: 640px) {
-            .col-name { min-width: 120px; max-width: 160px; } /* Lebih compact di HP */
-            .col-type { width: 65px; }
-            .col-price { width: 85px; }
-            th, td { font-size: 0.7rem; } /* Font tabel lebih kecil di HP */
-            .container { padding: 0.5rem; }
-        }
+        .form-input-sm, .form-select-sm { @apply w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white; min-height: 30px; }
+        @media (max-width: 640px) { .col-name { min-width: 120px; max-width: 160px; } th, td { font-size: 0.7rem; } .container { padding: 0.5rem; } }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -75,167 +31,116 @@
         <header class="mb-4 bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>
                 <h1 class="text-xl md:text-2xl font-bold text-gray-900">Formulir Data Order</h1>
-                <p class="text-xs text-green-600 font-bold flex items-center gap-1">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                    Support Excel XLS/XLSX
-                </p>
+                <p class="text-xs text-green-600 font-bold flex items-center gap-1">Support Excel XLS/XLSX</p>
             </div>
             <button onclick="toggleModal('priceListModal', true)" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold shadow flex justify-center items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                 Update Database
             </button>
         </header>
 
-        <!-- 1. DATA PELANGGAN -->
         <section class="mb-3 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">I. Data Pelanggan</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                    <input type="text" id="customerName" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none" placeholder="Nama Pelanggan / PT">
-                </div>
-                <div>
-                    <input type="text" id="keterangan" class="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:border-blue-500 outline-none" placeholder="Alamat / Keterangan Lain">
-                </div>
+                <input type="text" id="customerName" class="w-full px-3 py-2 text-sm border border-gray-300 rounded outline-none" placeholder="Nama Pelanggan / PT">
+                <input type="text" id="keterangan" class="w-full px-3 py-2 text-sm border border-gray-300 rounded outline-none" placeholder="Alamat / Keterangan Lain">
             </div>
         </section>
 
-        <!-- 2. TABEL PESANAN -->
         <section class="mb-6 bg-white p-2 md:p-4 rounded-lg shadow-sm border border-gray-200">
             <div class="flex justify-between items-center mb-2 px-1">
                 <h2 class="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-wide">II. Detail Pesanan</h2>
                 <div class="flex gap-2 items-center">
-                    <span class="hidden md:inline text-xs text-gray-400 italic mr-1">Database: <span id="dbCount" class="font-bold text-blue-600">0</span> item</span>
-                    <button onclick="addNewRow()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded text-xs font-bold border border-gray-300 flex items-center gap-1">
-                        <span>+</span> Baris
-                    </button>
+                    <span class="text-xs text-gray-400">Database: <span id="dbCount" class="font-bold text-blue-600">0</span></span>
+                    <button onclick="addNewRow()" class="bg-gray-100 px-3 py-1 rounded text-xs font-bold border">+ Baris</button>
                 </div>
             </div>
 
-            <!-- Container Scroll Horizontal -->
-            <div class="overflow-x-auto border rounded-lg max-h-[60vh] md:max-h-[600px] relative">
+            <div class="overflow-x-auto border rounded-lg max-h-[60vh] relative">
                 <table class="min-w-full">
-                    <thead class="bg-gray-100 text-gray-700">
+                    <thead class="bg-gray-100">
                         <tr>
                             <th class="col-no">#</th>
                             <th class="col-name text-left pl-2">Nama Barang</th>
-                            <th class="col-type text-left">Tipe</th>
-                            <th class="col-qty text-center">Qty</th>
-                            <th class="col-weight border-l" title="Berat">Kg</th>
-                            <th class="col-cbm border-l border-r" title="Volume">M³</th>
-                            <th class="col-price text-left pl-2">Harga</th>
-                            <th class="col-bonus text-left">Bonus</th>
+                            <th class="col-type">Tipe</th>
+                            <th class="col-qty">Qty</th>
+                            <th class="col-weight border-l">Kg</th>
+                            <th class="col-cbm border-l">M³</th>
+                            <th class="col-price">Harga</th>
+                            <th class="col-bonus">Bonus</th>
                             <th class="col-total pr-2">Total</th>
-                            <th class="w-8 text-center"></th>
+                            <th class="w-8"></th>
                         </tr>
                     </thead>
-                    <tbody id="order-rows-body" class="text-sm bg-white divide-y divide-gray-100"></tbody>
-                    <tfoot class="text-sm bg-gray-50 font-bold sticky bottom-0 z-20 shadow-inner">
-                        <tr class="border-t border-gray-300">
-                            <td colspan="4" class="text-right py-2 pr-2 text-xs text-gray-500 uppercase">Total Logistik:</td>
-                            <td class="text-center py-2 bg-gray-100 border-l border-gray-300 text-gray-800 text-xs"><span id="total-weight">0</span></td>
-                            <td class="text-center py-2 bg-gray-100 border-l border-r border-gray-300 text-gray-800 text-xs"><span id="total-cbm">0</span></td>
+                    <tbody id="order-rows-body" class="text-sm bg-white divide-y"></tbody>
+                    <tfoot class="text-sm bg-gray-50 font-bold sticky bottom-0 z-20">
+                        <tr>
+                            <td colspan="4" class="text-right pr-2 text-xs text-gray-400">LOGISTIK:</td>
+                            <td class="text-center bg-gray-100" id="total-weight">0</td>
+                            <td class="text-center bg-gray-100" id="total-cbm">0</td>
                             <td colspan="4"></td>
                         </tr>
-                        <tr class="bg-blue-50 border-t border-blue-200 text-blue-900">
-                            <td colspan="8" class="text-right py-3 pr-3 text-sm md:text-lg">TOTAL:</td>
-                            <td id="grand-total" class="text-right py-3 pr-2 text-sm md:text-lg font-extrabold">Rp 0</td>
+                        <tr class="bg-blue-50 text-blue-900">
+                            <td colspan="8" class="text-right py-3 pr-3">TOTAL:</td>
+                            <td id="grand-total" class="text-right py-3 pr-2 text-lg font-extrabold">Rp 0</td>
                             <td></td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
-            
-            <div class="mt-3 text-center md:hidden">
-                 <button onclick="addNewRow()" class="w-full py-3 border-2 border-dashed border-gray-300 text-gray-500 rounded-lg hover:bg-gray-50 font-bold text-sm">+ Tambah Barang</button>
-            </div>
         </section>
 
-        <!-- 3. TOMBOL AKSI -->
-        <section class="flex flex-col md:flex-row justify-end gap-3 mb-10 sticky bottom-4 z-30 px-1 md:px-0">
-            <input type="hidden" id="edit-log-id" value="">
-            <button id="cancel-edit-btn" class="hidden bg-red-500 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-red-600 transition">Batal Edit</button>
-            
-            <div class="flex gap-2 w-full md:w-auto">
-                <button onclick="resetAll()" class="flex-1 md:flex-none bg-white text-gray-700 border border-gray-300 font-bold py-3 px-6 rounded-full shadow-lg hover:bg-gray-100 transition text-sm">Reset</button>
-                <button onclick="submitOrder()" class="flex-1 md:flex-none bg-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-green-700 transition transform active:scale-95 flex justify-center items-center gap-2 text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-                    Simpan & WA
-                </button>
-            </div>
+        <section class="flex flex-col md:flex-row justify-end gap-3 mb-10">
+            <button onclick="resetAll()" class="bg-white border py-3 px-6 rounded-full shadow text-sm font-bold">Reset Form</button>
+            <button onclick="submitOrder()" class="bg-green-600 text-white py-3 px-8 rounded-full shadow text-sm font-bold flex justify-center items-center gap-2">
+                Simpan & WA
+            </button>
         </section>
 
-        <!-- 4. LOG PESANAN -->
         <section id="orderLogSection" class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hidden">
             <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Riwayat Pesanan</h2>
-            <div id="orderLogContent" class="space-y-2 max-h-[300px] overflow-y-auto pr-1"></div>
+            <div id="orderLogContent" class="space-y-2 max-h-[400px] overflow-y-auto"></div>
         </section>
     </div>
 
-    <!-- MODAL UPLOAD -->
     <div id="priceListModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden">
             <div class="bg-gray-800 text-white p-4 flex justify-between items-center">
-                <h3 class="font-bold text-lg">Update Database Harga</h3>
-                <button onclick="toggleModal('priceListModal', false)" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+                <h3 class="font-bold">Update Database</h3>
+                <button onclick="toggleModal('priceListModal', false)" class="text-2xl">&times;</button>
             </div>
-            
-            <div class="p-6 overflow-y-auto">
-                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-r text-sm text-blue-800">
-                    <p class="font-bold mb-1">Panduan Upload Excel:</p>
-                    <ul class="list-disc list-inside space-y-1 text-xs">
-                        <li>File <strong>.XLS</strong> atau <strong>.XLSX</strong>.</li>
-                        <li>Sistem mencari kolom: <strong>Nama, ISP, MSRP, Berat, CBM</strong>.</li>
-                    </ul>
+            <div class="p-6">
+                <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center relative">
+                    <input type="file" id="fileInput" accept=".xls, .xlsx" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleFileUpload(this)">
+                    <p class="text-sm text-gray-600">Klik atau Tarik File Excel ke sini</p>
                 </div>
-
-                <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50 hover:bg-white transition cursor-pointer relative">
-                    <input type="file" id="fileInput" accept=".csv, .xls, .xlsx" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleFileUpload(this)">
-                    <div class="pointer-events-none">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                        <p class="mt-1 text-sm text-gray-600">Klik area ini untuk memilih file Excel</p>
-                        <p id="fileNameDisplay" class="mt-2 text-xs font-bold text-blue-600"></p>
-                    </div>
-                </div>
-
-                <div id="uploadResult" class="mt-6 hidden">
-                    <div id="uploadStatusMsg" class="text-center font-bold text-sm mb-4"></div>
-                    <div class="overflow-x-auto border rounded bg-white">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-gray-100 border-b">
-                                <tr><th class="p-2">Nama</th><th class="p-2">ISP</th><th class="p-2">MSRP</th><th class="p-2">Berat</th><th class="p-2">CBM</th></tr>
-                            </thead>
-                            <tbody id="previewBody"></tbody>
-                        </table>
-                    </div>
+                <div id="uploadResult" class="mt-4 hidden">
+                    <p id="uploadStatusMsg" class="text-center font-bold text-sm mb-2"></p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL WA PREVIEW -->
     <div id="waModal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
-            <div class="p-4 border-b flex justify-between items-center bg-gray-50">
-                <h3 class="font-bold text-gray-800">Preview Pesanan</h3>
-                <button onclick="toggleModal('waModal', false)" class="text-2xl text-gray-500">&times;</button>
+            <div class="p-4 border-b flex justify-between">
+                <h3 class="font-bold">Preview WhatsApp</h3>
+                <button onclick="toggleModal('waModal', false)" class="text-2xl">&times;</button>
             </div>
             <div class="p-4 flex-1 overflow-hidden flex flex-col">
-                <textarea id="waText" class="w-full flex-1 border rounded p-3 text-xs font-mono bg-white focus:outline-none resize-none mb-4" readonly></textarea>
+                <textarea id="waText" class="w-full flex-1 border rounded p-3 text-xs font-mono mb-4 resize-none" readonly></textarea>
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="copyWA()" class="bg-gray-200 text-gray-800 py-3 rounded-lg text-sm font-bold hover:bg-gray-300">Salin Teks</button>
-                    <button onclick="openWA()" class="bg-green-600 text-white py-3 rounded-lg text-sm font-bold hover:bg-green-700 shadow-md">Buka WhatsApp</button>
+                    <button onclick="copyWA()" class="bg-gray-200 py-3 rounded-lg font-bold">Salin Teks</button>
+                    <button onclick="openWA()" class="bg-green-600 text-white py-3 rounded-lg font-bold">Buka WA</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const KEYS = { PRICES: 'ehose_prices_v7', LOG: 'ehose_log_v7', CUST: 'ehose_cust_v7' };
+        const KEYS = { PRICES: 'ehose_prices_v8', LOG: 'ehose_log_v8', CUST: 'ehose_cust_v8' };
         let priceList = [];
         let orderLog = [];
-        
-        // Initial Rows
-        const INITIAL_ROWS = 15;
+        const INITIAL_ROWS = 10;
 
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
@@ -244,99 +149,74 @@
         });
 
         function loadData() {
-            const defaultData = [{ id: 'def1', name: 'Contoh: FIBER OPTIC ADSS 24 CORE', isp: 20999000, msrp: 23308890, w: 237, cbm: 0.67 }];
             const savedPrices = localStorage.getItem(KEYS.PRICES);
-            priceList = savedPrices ? JSON.parse(savedPrices) : defaultData;
+            priceList = savedPrices ? JSON.parse(savedPrices) : [];
             document.getElementById('dbCount').textContent = priceList.length;
-            
             const savedLog = localStorage.getItem(KEYS.LOG);
             orderLog = savedLog ? JSON.parse(savedLog) : [];
-
-            if(!document.getElementById('edit-log-id').value) {
-                const c = JSON.parse(localStorage.getItem(KEYS.CUST)) || {};
-                document.getElementById('customerName').value = c.name || '';
-                document.getElementById('keterangan').value = c.keterangan || '';
-            }
         }
 
         function initTable() {
             const tbody = document.getElementById('order-rows-body');
             tbody.innerHTML = '';
-            for(let i=0; i<INITIAL_ROWS; i++) {
-                addRowHTML(i);
-            }
+            for(let i=0; i<INITIAL_ROWS; i++) addRowHTML(i);
             updateDropdowns();
-        }
-
-        function addNewRow() {
-            const tbody = document.getElementById('order-rows-body');
-            const newIdx = tbody.children.length;
-            addRowHTML(newIdx);
-            // Hanya update dropdown untuk baris baru agar ringan
-            const row = document.getElementById(`row-${newIdx}`);
-            const select = row.querySelector('.item-select');
-            populateSelect(select);
         }
 
         function addRowHTML(i) {
             const tbody = document.getElementById('order-rows-body');
             const tr = document.createElement('tr');
             tr.id = `row-${i}`;
-            tr.className = "hover:bg-blue-50 transition";
             tr.innerHTML = `
-                <td class="col-no text-center text-gray-400 font-mono idx text-[10px] md:text-xs">${i+1}</td>
-                <td class="col-name"><select class="item-select form-select-sm" onchange="updateRow(${i})"><option value="">-- Pilih Barang --</option></select></td>
+                <td class="col-no idx text-[10px] text-gray-400">${i+1}</td>
+                <td class="col-name"><select class="item-select form-select-sm" onchange="updateRow(${i})"><option value="">-- Pilih --</option></select></td>
                 <td class="col-type"><select class="type-select form-select-sm" onchange="updateRow(${i})"><option value="isp">ISP</option><option value="msrp">MSRP</option><option value="special">Special</option></select></td>
-                <td class="col-qty"><input type="number" class="qty-input form-input-sm text-center" placeholder="0" oninput="updateRow(${i})"></td>
-                <td class="col-weight border-l"><span class="val-weight text-gray-600">-</span></td>
-                <td class="col-cbm border-l border-r"><span class="val-cbm text-gray-600">-</span></td>
-                <td class="col-price"><input type="text" class="price-input form-input-sm text-right" disabled placeholder="0" onkeyup="formatInput(this); updateRow(${i})"></td>
-                <td class="col-bonus"><input type="text" class="bonus-input form-input-sm" placeholder="-"></td>
-                <td class="col-total"><span class="val-total block font-bold text-gray-700">0</span></td>
-                <td class="text-center"><button onclick="removeRow(this)" class="text-red-300 hover:text-red-500 font-bold px-1">&times;</button></td>
+                <td class="col-qty"><input type="number" class="qty-input form-input-sm text-center" oninput="updateRow(${i})"></td>
+                <td class="col-weight border-l"><span class="val-weight">-</span></td>
+                <td class="col-cbm border-l"><span class="val-cbm">-</span></td>
+                <td class="col-price"><input type="text" class="price-input form-input-sm text-right" disabled onkeyup="formatInput(this); updateRow(${i})"></td>
+                <td class="col-bonus"><input type="text" class="bonus-input form-input-sm"></td>
+                <td class="col-total"><span class="val-total font-bold">0</span></td>
+                <td class="text-center"><button onclick="removeRow(this)" class="text-red-400 font-bold">&times;</button></td>
             `;
             tbody.appendChild(tr);
         }
 
+        function addNewRow() {
+            const tbody = document.getElementById('order-rows-body');
+            const newIdx = tbody.children.length;
+            addRowHTML(newIdx);
+            populateSelect(tbody.lastChild.querySelector('.item-select'));
+        }
+
         function removeRow(btn) {
-            const row = btn.closest('tr');
-            row.remove();
+            btn.closest('tr').remove();
             calcGrandTotal();
-            // Renumber
-            document.querySelectorAll('#order-rows-body tr').forEach((tr, idx) => {
-                tr.querySelector('.idx').textContent = idx + 1;
-            });
+            document.querySelectorAll('#order-rows-body tr').forEach((tr, idx) => tr.querySelector('.idx').textContent = idx + 1);
         }
 
         function updateDropdowns() {
-            // Sort data sekali saja
             priceList.sort((a,b) => a.name.localeCompare(b.name));
-            // Gunakan DocumentFragment untuk performa jika data ribuan
-            document.querySelectorAll('.item-select').forEach(select => {
-                populateSelect(select);
-            });
+            document.querySelectorAll('.item-select').forEach(sel => populateSelect(sel));
         }
 
         function populateSelect(select) {
-            const currentVal = select.value;
-            let html = `<option value="">-- Pilih Barang --</option>`;
-            // Optimasi: render string besar lebih cepat daripada DOM append loop
+            const current = select.value;
+            let html = `<option value="">-- Pilih --</option>`;
             html += priceList.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
             select.innerHTML = html;
-            select.value = currentVal;
+            select.value = current;
         }
 
         function updateRow(idx) {
             const row = document.getElementById(`row-${idx}`);
-            if(!row) return; // Baris mungkin sudah dihapus
-            
+            if(!row) return;
             const itemId = row.querySelector('.item-select').value;
             const type = row.querySelector('.type-select').value;
             const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
             const priceInput = row.querySelector('.price-input');
             
             let price = 0, w = 0, cbm = 0;
-
             if(itemId) {
                 const item = priceList.find(p => p.id == itemId);
                 if(item) {
@@ -347,21 +227,13 @@
                     } else {
                         priceInput.disabled = true;
                         price = (type === 'msrp') ? item.msrp : item.isp;
-                        if(document.activeElement !== priceInput) priceInput.value = formatRupiah(price);
+                        priceInput.value = formatRupiah(price);
                     }
                 }
-            } else {
-                priceInput.value = ''; priceInput.disabled = true;
             }
-
-            const total = price * qty;
-            const totalW = w * qty;
-            const totalCBM = cbm * qty;
-
-            row.querySelector('.val-total').textContent = formatRupiah(total);
-            row.querySelector('.val-weight').textContent = totalW > 0 ? totalW.toFixed(2) : '-';
-            row.querySelector('.val-cbm').textContent = totalCBM > 0 ? totalCBM.toFixed(4) : '-';
-
+            row.querySelector('.val-total').textContent = formatRupiah(price * qty);
+            row.querySelector('.val-weight').textContent = (w * qty) > 0 ? (w * qty).toFixed(2) : '-';
+            row.querySelector('.val-cbm').textContent = (cbm * qty) > 0 ? (cbm * qty).toFixed(4) : '-';
             calcGrandTotal();
         }
 
@@ -369,222 +241,149 @@
             let gt = 0, tw = 0, tc = 0;
             document.querySelectorAll('#order-rows-body tr').forEach(row => {
                 gt += parseNumber(row.querySelector('.val-total').textContent);
-                const w = parseFloat(row.querySelector('.val-weight').textContent);
-                if(!isNaN(w)) tw += w;
-                const c = parseFloat(row.querySelector('.val-cbm').textContent);
-                if(!isNaN(c)) tc += c;
+                tw += parseFloat(row.querySelector('.val-weight').textContent) || 0;
+                tc += parseFloat(row.querySelector('.val-cbm').textContent) || 0;
             });
             document.getElementById('grand-total').textContent = formatRupiah(gt);
-            document.getElementById('total-weight').textContent = tw > 0 ? tw.toFixed(2) + " kg" : "0";
-            document.getElementById('total-cbm').textContent = tc > 0 ? tc.toFixed(4) + " m³" : "0";
+            document.getElementById('total-weight').textContent = tw.toFixed(2) + " kg";
+            document.getElementById('total-cbm').textContent = tc.toFixed(4) + " m³";
         }
 
-        // --- UPLOAD LOGIC (SHEET JS) ---
-        function handleFileUpload(input) {
-            const file = input.files[0];
-            if(!file) return;
-            
-            document.getElementById('fileNameDisplay').textContent = file.name;
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                try {
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    
-                    // Convert to JSON array (array of arrays)
-                    const rows = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-                    processData(rows);
-                } catch(err) {
-                    alert("Error membaca file Excel: " + err.message);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function processData(rows) {
-            let newItems = [];
-            let success = 0;
-            
-            // Scanner Column Index
-            // Kita cari baris Header dulu untuk tau index kolom
-            let colIdx = { name: -1, isp: -1, msrp: -1, weight: -1, cbm: -1 };
-            let startRow = 0;
-
-            // Scanning Header (Mencoba menebak baris header)
-            for(let i=0; i<Math.min(rows.length, 10); i++) {
-                const row = rows[i].map(c => String(c).toUpperCase().trim());
-                
-                // Cari kata kunci
-                // File Baru: "NAMA BARANG", "ISP", "MSRP", "BERAT", "CBM"
-                // File Lama: "HARGA", "ISP"
-                
-                if(row.includes("ISP") || row.includes("MSRP")) {
-                    colIdx.name = 0; // Default asumsi nama di kolom A
-                    
-                    // Scan kolom
-                    row.forEach((cell, idx) => {
-                        if(cell.includes("BARANG") || cell.includes("ITEM")) colIdx.name = idx;
-                        else if(cell === "ISP") colIdx.isp = idx;
-                        else if(cell === "MSRP") colIdx.msrp = idx;
-                        else if(cell.includes("BERAT") || cell.includes("WEIGHT")) colIdx.weight = idx;
-                        else if(cell === "CBM" || cell.includes("DIMENSI")) colIdx.cbm = idx;
-                    });
-                    
-                    // Fallback logika manual jika header tidak standard
-                    // File Baru (XLS): A(0)=Nama, B(1)=ISP, C(2)=MSRP, E(4)=Berat, G(6)=CBM
-                    if(colIdx.isp === -1 && row[1] === "ISP") { // Struktur XLS Baru
-                        colIdx = { name: 0, isp: 1, msrp: 2, weight: 4, cbm: 6 };
-                    }
-                    // File Lama (XLSX): A(0)=Nama, D(3)=ISP, F(5)=MSRP, H(7)=Berat, J(9)=CBM
-                    if(colIdx.isp === -1 && row[3] === "ISP") { // Struktur XLSX Lama
-                        colIdx = { name: 0, isp: 3, msrp: 5, weight: 7, cbm: 9 };
-                    }
-                    
-                    startRow = i + 1;
-                    break;
-                }
-            }
-
-            // Jika Gagal Auto-Detect Header, Pakai Default Mapping XLS Baru
-            if(colIdx.isp === -1) {
-                // Cek data baris ke-2 (index 1), apakah kolom 1 (B) adalah angka harga?
-                if(rows.length > 1 && !isNaN(cleanNumber(rows[1][1]))) {
-                     colIdx = { name: 0, isp: 1, msrp: 2, weight: 4, cbm: 6 };
-                     startRow = 0;
-                }
-            }
-
-            // Process Rows
-            for(let i=startRow; i<rows.length; i++) {
-                const row = rows[i];
-                if(!row || row.length < 2) continue;
-
-                const name = String(row[colIdx.name] || "").trim();
-                // Skip header/empty
-                if(!name || name.includes("NAMA BARANG") || name.startsWith("#")) continue;
-
-                const isp = cleanNumber(row[colIdx.isp]);
-                const msrp = cleanNumber(row[colIdx.msrp]);
-                const w = cleanDecimal(row[colIdx.weight]);
-                const cbm = cleanDecimal(row[colIdx.cbm]);
-
-                if(isp > 0 || msrp > 0) {
-                    newItems.push({
-                        id: `id_${Date.now()}_${i}`,
-                        name: name,
-                        isp: isp,
-                        msrp: msrp || isp,
-                        w: w,
-                        cbm: cbm
-                    });
-                    success++;
-                }
-            }
-
-            const statusMsg = document.getElementById('uploadStatusMsg');
-            const preview = document.getElementById('uploadResult');
-            
-            if (success > 0) {
-                priceList = newItems;
-                localStorage.setItem(KEYS.PRICES, JSON.stringify(priceList));
-                document.getElementById('dbCount').textContent = priceList.length;
-                
-                // Render Preview
-                const tbody = document.getElementById('previewBody');
-                tbody.innerHTML = '';
-                newItems.slice(0, 5).forEach(item => {
-                    tbody.innerHTML += `<tr class="border-b"><td class="p-2 truncate max-w-[150px]">${item.name}</td><td class="p-2">${formatRupiah(item.isp)}</td><td class="p-2">${formatRupiah(item.msrp)}</td><td class="p-2">${item.w}</td><td class="p-2">${item.cbm}</td></tr>`;
-                });
-                
-                preview.classList.remove('hidden');
-                statusMsg.textContent = `SUKSES! Berhasil membaca ${success} produk.`;
-                statusMsg.className = "text-center font-bold text-sm mb-4 text-green-600";
-                
-                // Refresh Form
-                updateDropdowns();
-            } else {
-                preview.classList.remove('hidden');
-                statusMsg.textContent = "GAGAL: Tidak ada data harga yang terbaca. Pastikan format kolom benar.";
-                statusMsg.className = "text-center font-bold text-sm mb-4 text-red-600";
-            }
-        }
-
-        // --- SUBMIT ---
-        function submitOrder() {
-            let items = [];
-            const rows = document.querySelectorAll('#order-rows-body tr');
-            
-            rows.forEach(row => {
-                const qty = parseFloat(row.querySelector('.qty-input').value);
-                if(qty > 0) {
-                    const sel = row.querySelector('.item-select');
-                    const name = sel.options[sel.selectedIndex].text;
-                    const price = row.querySelector('.price-input').value;
-                    const total = row.querySelector('.val-total').textContent;
-                    const type = row.querySelector('.type-select').value.toUpperCase();
-                    const w = row.querySelector('.val-weight').textContent;
-                    const cbm = row.querySelector('.val-cbm').textContent;
-                    const bonus = row.querySelector('.bonus-input').value;
-                    items.push({ name, qty, price, total, type, w, cbm, bonus });
-                }
-            });
-
-            if(items.length === 0) { alert("Isi pesanan dulu!"); return; }
-
-            const cName = document.getElementById('customerName').value;
-            const cKet = document.getElementById('keterangan').value;
-            const gTotal = document.getElementById('grand-total').textContent;
-            const tWeight = document.getElementById('total-weight').textContent;
-            const tCbm = document.getElementById('total-cbm').textContent;
-            const date = new Date().toLocaleString('id-ID');
-
-            let txt = `*ORDER BARU*\n📅 ${date}\n👤 ${cName}\n📝 ${cKet}\n\n*DETAIL BARANG:*\n`;
-            items.forEach(i => {
-                txt += `----------------\n*${i.name}*\n${i.qty} x ${i.price} (${i.type})\nSub: *${i.total}*\n`;
-                if(i.w !== '-') txt += `(Est: ${i.w}, ${i.cbm})\n`;
-                if(i.bonus) txt += `🎁 Bonus: ${i.bonus}\n`;
-            });
-            txt += `================\n*TOTAL: ${gTotal}*\n📦 Berat: ${tWeight} | Vol: ${tCbm}`;
-
-            document.getElementById('waText').value = txt;
-            toggleModal('waModal', true);
-
-            orderLog.unshift({ id: Date.now(), date, name: cName, total: gTotal, itemsCount: items.length });
-            localStorage.setItem(KEYS.LOG, JSON.stringify(orderLog));
-            localStorage.setItem(KEYS.CUST, JSON.stringify({name:cName, keterangan:cKet}));
-            renderLog();
-        }
-
-        // --- HELPER ---
-        function cleanNumber(val) {
-            if(!val) return 0;
-            if(typeof val === 'number') return val;
-            return parseInt(val.replace(/\D/g, ''), 10) || 0;
-        }
-        function cleanDecimal(val) {
-            if(!val) return 0;
-            if(typeof val === 'number') return val;
-            let s = String(val).toLowerCase().replace('kg','').replace('m3','').trim();
-            s = s.replace(',', '.');
-            let m = s.match(/[\d\.]+/);
-            return m ? parseFloat(m[0]) : 0;
-        }
-        function formatRupiah(n) { return new Intl.NumberFormat('id-ID', {style:'currency', currency:'IDR', minimumFractionDigits:0}).format(n); }
-        function parseNumber(str) { if(!str) return 0; return parseInt(str.replace(/\D/g, ''), 10) || 0; }
-        function formatInput(el) { let val = parseNumber(el.value); el.value = formatRupiah(val); }
-        function toggleModal(id, show) { const el = document.getElementById(id); if(show) { el.classList.remove('hidden'); } else { el.classList.add('hidden'); } }
-        function copyWA() { const txt = document.getElementById('waText'); txt.select(); document.execCommand('copy'); alert("Teks berhasil disalin!"); }
-        function openWA() { const txt = document.getElementById('waText').value; window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank'); }
-        function resetAll() { if(confirm("Reset form?")) { document.getElementById('customerName').value = ''; document.getElementById('keterangan').value = ''; initTable(); calcGrandTotal(); } }
+        // FUNGSI LOG HISTORY (HAPUS & BUKA)
         function renderLog() {
             const div = document.getElementById('orderLogContent');
             const section = document.getElementById('orderLogSection');
             if(orderLog.length === 0) { section.classList.add('hidden'); return; }
             section.classList.remove('hidden');
-            div.innerHTML = orderLog.map(l => `<div class="flex justify-between items-center p-3 bg-gray-50 rounded border text-xs"><div><div class="font-bold text-gray-700">${l.name || 'No Name'}</div><div class="text-gray-400">${l.date} • ${l.itemsCount} item</div></div><div class="font-bold text-blue-600">${l.total}</div></div>`).join('');
+            div.innerHTML = orderLog.map(l => `
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded border text-xs shadow-sm">
+                    <div class="flex-1 cursor-pointer" onclick="reopenOrder(${l.id})">
+                        <div class="font-bold text-gray-800">${l.name || 'Tanpa Nama'}</div>
+                        <div class="text-gray-400">${l.date} • ${l.itemsCount} Item</div>
+                        <div class="text-blue-600 font-bold">${l.total}</div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="reopenOrder(${l.id})" class="bg-blue-100 text-blue-600 px-3 py-1 rounded font-bold">Buka</button>
+                        <button onclick="deleteLog(${l.id})" class="bg-red-100 text-red-600 px-3 py-1 rounded font-bold">Hapus</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteLog(id) {
+            if(confirm("Hapus riwayat ini?")) {
+                orderLog = orderLog.filter(l => l.id !== id);
+                localStorage.setItem(KEYS.LOG, JSON.stringify(orderLog));
+                renderLog();
+            }
+        }
+
+        function reopenOrder(id) {
+            const data = orderLog.find(l => l.id === id);
+            if(!data || !data.fullItems) return;
+            if(!confirm("Buka kembali pesanan ini? Inputan saat ini akan di-reset.")) return;
+
+            document.getElementById('customerName').value = data.name || '';
+            document.getElementById('keterangan').value = data.keterangan || '';
+            
+            const tbody = document.getElementById('order-rows-body');
+            tbody.innerHTML = '';
+            
+            data.fullItems.forEach((item, i) => {
+                addRowHTML(i);
+                const row = document.getElementById(`row-${i}`);
+                const match = priceList.find(p => p.name === item.name);
+                if(match) {
+                    const sel = row.querySelector('.item-select');
+                    populateSelect(sel);
+                    sel.value = match.id;
+                }
+                row.querySelector('.type-select').value = item.type.toLowerCase();
+                row.querySelector('.qty-input').value = item.qty;
+                row.querySelector('.bonus-input').value = item.bonus || '';
+                if(item.type.toLowerCase() === 'special') {
+                    row.querySelector('.price-input').disabled = false;
+                    row.querySelector('.price-input').value = item.price;
+                }
+                updateRow(i);
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function submitOrder() {
+            let items = [];
+            document.querySelectorAll('#order-rows-body tr').forEach(row => {
+                const qty = parseFloat(row.querySelector('.qty-input').value);
+                if(qty > 0) {
+                    const sel = row.querySelector('.item-select');
+                    items.push({
+                        name: sel.options[sel.selectedIndex].text,
+                        qty: qty,
+                        price: row.querySelector('.price-input').value,
+                        total: row.querySelector('.val-total').textContent,
+                        type: row.querySelector('.type-select').value.toUpperCase(),
+                        bonus: row.querySelector('.bonus-input').value
+                    });
+                }
+            });
+            if(items.length === 0) return alert("Isi pesanan!");
+
+            const cName = document.getElementById('customerName').value;
+            const cKet = document.getElementById('keterangan').value;
+            const gTotal = document.getElementById('grand-total').textContent;
+            const date = new Date().toLocaleString('id-ID');
+
+            orderLog.unshift({ id: Date.now(), date, name: cName, keterangan: cKet, total: gTotal, itemsCount: items.length, fullItems: items });
+            localStorage.setItem(KEYS.LOG, JSON.stringify(orderLog));
+            renderLog();
+
+            let txt = `*ORDER BARU*\n📅 ${date}\n👤 ${cName}\n\n*DETAIL:*\n`;
+            items.forEach(i => txt += `- ${i.name} (${i.qty}x)\n  Harga: ${i.price} [${i.type}]\n`);
+            txt += `\n*TOTAL: ${gTotal}*`;
+            document.getElementById('waText').value = txt;
+            toggleModal('waModal', true);
+        }
+
+        // HELPERS
+        function formatRupiah(n) { return new Intl.NumberFormat('id-ID', {style:'currency', currency:'IDR', minimumFractionDigits:0}).format(n); }
+        function parseNumber(str) { return parseInt(str.replace(/\D/g, ''), 10) || 0; }
+        function formatInput(el) { el.value = formatRupiah(parseNumber(el.value)); }
+        function toggleModal(id, show) { document.getElementById(id).classList.toggle('hidden', !show); }
+        function copyWA() { document.getElementById('waText').select(); document.execCommand('copy'); alert("Disalin!"); }
+        function openWA() { window.open(`https://wa.me/?text=${encodeURIComponent(document.getElementById('waText').value)}`, '_blank'); }
+        function resetAll() { if(confirm("Reset?")) { document.getElementById('customerName').value=''; document.getElementById('keterangan').value=''; initTable(); calcGrandTotal(); } }
+
+        // EXCEL UPLOAD
+        function handleFileUpload(input) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
+                
+                let newItems = [];
+                // Simple Mapping: Kolom 0=Nama, 1=ISP, 2=MSRP, 4=Berat, 6=CBM
+                rows.forEach((row, i) => {
+                    if(i > 0 && row[0]) {
+                        newItems.push({
+                            id: 'item_'+Date.now()+'_'+i,
+                            name: row[0],
+                            isp: parseInt(row[1]) || 0,
+                            msrp: parseInt(row[2]) || 0,
+                            w: parseFloat(row[4]) || 0,
+                            cbm: parseFloat(row[6]) || 0
+                        });
+                    }
+                });
+                priceList = newItems;
+                localStorage.setItem(KEYS.PRICES, JSON.stringify(priceList));
+                document.getElementById('dbCount').textContent = priceList.length;
+                updateDropdowns();
+                alert("Database Berhasil Diupdate!");
+                toggleModal('priceListModal', false);
+            };
+            reader.readAsArrayBuffer(file);
         }
     </script>
 </body>
